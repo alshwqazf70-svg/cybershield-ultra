@@ -19,3 +19,7 @@ legendary_state.json
 *.sqlite
 *.sqlite3
 .DS_Store
+
+# ملفات إضافية للتجاهل
+*.pyc
+.pyc
