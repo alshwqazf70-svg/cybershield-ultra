@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}{{ title|default('المقال') }} - CyberShield Ultra{% endblock %}
+{% block meta_description %}{{ excerpt|default('مقال في الأمن السيبراني') }}{% endblock %}
+{% block blog_schema %}
+{% endblock %}
+{% block styles %}
+<style>
+    .article-hero {
+        background: radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.15) 0%, transparent 70%);
+        padding: var(--space-12) 0;
+        text-align: center;
+    }
+    .article-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: var(--space-8);
+        background: var(--bg-card);
+        border-radius: var(--radius-2xl);
+    }
+    .article-content {
+        color: var(--text-secondary);
+        line-height: 1.8;
+        font-size: 1.05rem;
+    }
+    .article-content h2 {
+        color: var(--aurora-teal);
+        margin: var(--space-8) 0 var(--space-4);
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="article-hero">
+        <span class="hero-icon">📄</span>
+        <h1 class="hero-title">{{ title|default('كيف تحمي نفسك من الاحتيال الإلكتروني') }}</h1>
+        <div class="article-meta">
+            <span>👤 {{ author|default('أحمد') }}</span>
+            <span>📅 {{ date|default('١٥ فبراير ٢٠٢٦') }}</span>
+        </div>
+    </div>
+    <div class="article-container">
+        <div class="article-content">
+            <p>محتوى المقال هنا...</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

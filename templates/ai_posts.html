@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}مقالات الذكاء الاصطناعي - CyberShield Ultra{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="text-center mb-4">🤖 مقالات الذكاء الاصطناعي</h1>
+            <p class="text-center text-muted mb-5">أحدث المقالات والتقنيات في عالم الذكاء الاصطناعي والأمن السيبراني</p>
+        </div>
+    </div>
+    <div class="row">
+        {% for post in posts %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">{{ post.title }}</h5>
+                    <p class="card-text text-muted">{{ post.excerpt }}</p>
+                    <a href="/ai_posts/{{ post.slug }}" class="btn btn-primary btn-sm">اقرأ المزيد</a>
+                </div>
+                <div class="card-footer bg-transparent border-0 text-muted small">
+                    📅 {{ post.date }}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

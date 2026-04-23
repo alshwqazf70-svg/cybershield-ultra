@@ -1,0 +1,322 @@
+{% extends "base.html" %}
+{% block title %}ℹ️ من نحن - CyberShield Ultra{% endblock %}
+{% block meta_description %}تعرف على منصة CyberShield Ultra، رؤيتنا، رسالتنا، وفريق العمل. المنصة العربية الأولى للأمن السيبراني.{% endblock %}
+{% block meta_keywords %}عن المنصة, من نحن, رؤية, رسالة, فريق العمل{% endblock %}
+{% block og_title %}ℹ️ من نحن - CyberShield Ultra{% endblock %}
+{% block og_description %}تعرف على منصة الأمن السيبراني العربية المتطورة.{% endblock %}
+{% block styles %}
+<style>
+    /* About Page Specific Styles */
+    .about-hero {
+        background: radial-gradient(circle at 50% 50%, rgba(168, 85, 247, 0.15) 0%, transparent 70%);
+        padding: var(--space-16) 0;
+        text-align: center;
+    }
+    .mission-vision {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: var(--space-8);
+        margin: var(--space-12) 0;
+    }
+    .mv-card {
+        background: linear-gradient(145deg, rgba(168, 85, 247, 0.05), rgba(236, 72, 153, 0.05));
+        border: 1px solid rgba(168, 85, 247, 0.2);
+        border-radius: var(--radius-xl);
+        padding: var(--space-8);
+        text-align: center;
+        transition: all var(--transition-base);
+    }
+    .mv-card:hover {
+        transform: translateY(-10px);
+        border-color: rgba(168, 85, 247, 0.4);
+        box-shadow: 0 20px 40px -10px rgba(168, 85, 247, 0.3);
+    }
+    .mv-icon {
+        font-size: 3rem;
+        margin-bottom: var(--space-4);
+    }
+    .mv-title {
+        font-size: 2rem;
+        margin-bottom: var(--space-4);
+        background: linear-gradient(135deg, #c084fc, #a855f7);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .stats-grid-large {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: var(--space-6);
+        margin: var(--space-12) 0;
+    }
+    .stat-card-large {
+        background: var(--bg-glass);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--border-2);
+        border-radius: var(--radius-xl);
+        padding: var(--space-8);
+        text-align: center;
+        transition: all var(--transition-base);
+    }
+    .stat-card-large:hover {
+        transform: scale(1.05);
+        border-color: var(--aurora-gold);
+        box-shadow: var(--shadow-gold);
+    }
+    .stat-number {
+        font-size: 3rem;
+        font-weight: 900;
+        background: var(--gradient-gold);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        line-height: 1;
+        margin-bottom: var(--space-2);
+    }
+    .stat-label-large {
+        color: var(--text-tertiary);
+        font-size: 1.1rem;
+    }
+    .timeline {
+        position: relative;
+        max-width: 800px;
+        margin: var(--space-12) auto;
+    }
+    .timeline::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        right: 50%;
+        width: 2px;
+        background: linear-gradient(180deg, var(--aurora-purple), var(--aurora-pink));
+        transform: translateX(50%);
+    }
+    .timeline-item {
+        position: relative;
+        margin-bottom: var(--space-8);
+        width: 100%;
+    }
+    .timeline-item:nth-child(odd) .timeline-content {
+        margin-left: 50%;
+        padding-left: var(--space-8);
+    }
+    .timeline-item:nth-child(even) .timeline-content {
+        margin-right: 50%;
+        padding-right: var(--space-8);
+        text-align: left;
+    }
+    .timeline-content {
+        background: var(--bg-card);
+        border: 1px solid var(--border-2);
+        border-radius: var(--radius-lg);
+        padding: var(--space-6);
+        position: relative;
+        width: 45%;
+    }
+    .timeline-dot {
+        position: absolute;
+        top: 50%;
+        width: 20px;
+        height: 20px;
+        background: var(--aurora-purple);
+        border-radius: 50%;
+        transform: translateY(-50%);
+        box-shadow: 0 0 30px var(--aurora-purple);
+    }
+    .timeline-item:nth-child(odd) .timeline-dot {
+        right: -10px;
+    }
+    .timeline-item:nth-child(even) .timeline-dot {
+        left: -10px;
+    }
+    .timeline-year {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--aurora-gold);
+        margin-bottom: var(--space-2);
+    }
+    .values-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: var(--space-6);
+        margin: var(--space-12) 0;
+    }
+    .value-card {
+        background: linear-gradient(145deg, rgba(6, 182, 212, 0.05), rgba(59, 130, 246, 0.05));
+        border: 1px solid rgba(6, 182, 212, 0.2);
+        border-radius: var(--radius-lg);
+        padding: var(--space-6);
+        text-align: center;
+    }
+    .value-icon {
+        font-size: 2.5rem;
+        margin-bottom: var(--space-3);
+    }
+    .value-title {
+        color: var(--aurora-cyan);
+        font-size: 1.3rem;
+        margin-bottom: var(--space-2);
+    }
+    @media (max-width: 768px) {
+        .timeline::before {
+            right: 0;
+        }
+        .timeline-item:nth-child(odd) .timeline-content,
+        .timeline-item:nth-child(even) .timeline-content {
+            width: calc(100% - 30px);
+            margin-right: 30px !important;
+            margin-left: 0 !important;
+            text-align: right !important;
+        }
+        .timeline-dot {
+            right: -10px !important;
+            left: auto !important;
+        }
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="about-hero">
+        <span class="hero-icon">🛡️</span>
+        <p class="hero-subtitle">
+            المنصة العربية الأولى للأمن السيبراني<br>
+            <span style="color: var(--text-tertiary);">نحمي فضاءك الرقمي بذكاء اصطناعي عربي خالص</span>
+        </p>
+    </div>
+    <div class="mission-vision">
+        <div class="mv-card">
+            <div class="mv-icon">🎯</div>
+            <h2 class="mv-title">رسالتنا</h2>
+            <p style="color: var(--text-secondary); line-height: 1.8;">
+                تمكين المستخدمين العرب من أدوات أمن سيبراني متطورة ومجانية،
+                مع الحفاظ على الخصوصية التامة وبدون الحاجة لخدمات خارجية.
+            </p>
+        </div>
+        <div class="mv-card">
+            <div class="mv-icon">👁️</div>
+            <h2 class="mv-title">رؤيتنا</h2>
+            <p style="color: var(--text-secondary); line-height: 1.8;">
+                أن نكون المنصة العربية الرائدة في مجال الأمن السيبراني،
+                وأن نساهم في رفع الوعي الأمني في العالم العربي.
+            </p>
+        </div>
+    </div>
+    <div class="stats-grid-large">
+        <div class="stat-card-large">
+            <div class="stat-number">١٧</div>
+            <div class="stat-label-large">أداة احترافية</div>
+        </div>
+        <div class="stat-card-large">
+            <div class="stat-number">٢٢</div>
+            <div class="stat-label-large">دولة عربية</div>
+        </div>
+        <div class="stat-card-large">
+            <div class="stat-number">١٠٠٪</div>
+            <div class="stat-label-large">خصوصية</div>
+        </div>
+        <div class="stat-card-large">
+            <div class="stat-number">٢٤/٧</div>
+            <div class="stat-label-large">دعم فني</div>
+        </div>
+    </div>
+    <h2 style="text-align: center; margin: var(--space-16) 0 var(--space-8);">رحلتنا</h2>
+    <div class="timeline">
+        <div class="timeline-item">
+            <div class="timeline-content">
+                <span class="timeline-dot"></span>
+                <div class="timeline-year">٢٠٢٠</div>
+                <h3>انطلاقة الفكرة</h3>
+                <p style="color: var(--text-tertiary);">بدأنا كفكرة بسيطة لتوفير أدوات أمن سيبراني عربية</p>
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="timeline-content">
+                <span class="timeline-dot"></span>
+                <div class="timeline-year">٢٠٢١</div>
+                <h3>إطلاق النسخة التجريبية</h3>
+                <p style="color: var(--text-tertiary);">أول ٥ أدوات مع ١٠ دول عربية</p>
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="timeline-content">
+                <span class="timeline-dot"></span>
+                <div class="timeline-year">٢٠٢٢</div>
+                <h3>النسخة الذهبية</h3>
+                <p style="color: var(--text-tertiary);">إضافة الذكاء الاصطناعي المحلي</p>
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="timeline-content">
+                <span class="timeline-dot"></span>
+                <div class="timeline-year">٢٠٢٣</div>
+                <h3>التوسع العربي الكامل</h3>
+                <p style="color: var(--text-tertiary);">٢٢ دولة عربية، ١٧ أداة احترافية</p>
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="timeline-content">
+                <span class="timeline-dot"></span>
+                <div class="timeline-year">٢٠٢٤</div>
+                <h3>الإصدار الأسطوري</h3>
+                <p style="color: var(--text-tertiary);">دقة ٩٩٪، ذكاء اصطناعي متطور، أمان عسكري</p>
+            </div>
+        </div>
+    </div>
+    <h2 style="text-align: center; margin: var(--space-16) 0 var(--space-8);">قيمنا</h2>
+    <div class="values-grid">
+        <div class="value-card">
+            <div class="value-icon">🔒</div>
+            <h3 class="value-title">الخصوصية أولاً</h3>
+            <p style="color: var(--text-tertiary);">لا نخزن بياناتك، لا نشاركها، لا نبيعها</p>
+        </div>
+        <div class="value-card">
+            <div class="value-icon">⚡</div>
+            <h3 class="value-title">أداء عالٍ</h3>
+            <p style="color: var(--text-tertiary);">نتائج فورية بدقة متناهية</p>
+        </div>
+        <div class="value-card">
+            <div class="value-icon">🌍</div>
+            <h3 class="value-title">عربي ١٠٠٪</h3>
+            <p style="color: var(--text-tertiary);">محتوى عربي، دعم عربي، للمستخدم العربي</p>
+        </div>
+        <div class="value-card">
+            <div class="value-icon">🆓</div>
+            <h3 class="value-title">مجاني دائماً</h3>
+            <p style="color: var(--text-tertiary);">أدوات أمنية متطورة للجميع بدون مقابل</p>
+        </div>
+        <div class="value-card">
+            <div class="value-icon">🧠</div>
+            <h3 class="value-title">ذكاء محلي</h3>
+            <p style="color: var(--text-tertiary);">خوارزميات عربية خالصة، بدون APIs خارجية</p>
+        </div>
+        <div class="value-card">
+            <div class="value-icon">🤝</div>
+            <h3 class="value-title">مجتمع</h3>
+            <p style="color: var(--text-tertiary);">نبني معاً مجتمعاً رقمياً آمناً</p>
+        </div>
+    </div>
+    <div style="text-align: center; margin: var(--space-16) 0;">
+        <h2>فريق العمل</h2>
+        <p style="color: var(--text-tertiary); max-width: 600px; margin: var(--space-4) auto;">
+            نخبة من خبراء الأمن السيبراني والمطورين العرب، يعملون بشغف لحماية فضاءنا الرقمي
+        </p>
+        <div style="display: flex; justify-content: center; gap: var(--space-8); flex-wrap: wrap; margin-top: var(--space-8);">
+            <div style="text-align: center;">
+                <div style="font-size: 4rem; margin-bottom: var(--space-2);">👨‍💻</div>
+                <h4>أحمد المصري</h4>
+                <p style="color: var(--text-tertiary);">المؤسس التقني</p>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 4rem; margin-bottom: var(--space-2);">👩‍💻</div>
+                <h4>سارة السعودية</h4>
+                <p style="color: var(--text-tertiary);">خبيرة أمن سيبراني</p>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 4rem; margin-bottom: var(--space-2);">👨‍🔬</div>
+                <h4>محمد اليمني</h4>
+                <p style="color: var(--text-tertiary);">مهندس ذكاء اصطناعي</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

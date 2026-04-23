@@ -1,0 +1,12 @@
+flask
+flask-cors
+flask-limiter
+gunicorn
+requests
+python-whois
+dnspython
+phonenumbers
+aiohttp
+cryptography
+idna
+tldextract

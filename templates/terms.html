@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+{% block title %}📜 شروط الاستخدام - CyberShield Ultra{% endblock %}
+{% block meta_description %}شروط وأحكام استخدام منصة CyberShield Ultra. تعرف على حقوقك وواجباتك عند استخدام خدماتنا.{% endblock %}
+{% block meta_keywords %}شروط الاستخدام, أحكام, قواعد, اتفاقية مستخدم{% endblock %}
+{% block og_title %}📜 شروط الاستخدام - CyberShield Ultra{% endblock %}
+{% block og_description %}شروط وأحكام استخدام منصة الأمن السيبراني العربية.{% endblock %}
+{% block styles %}
+<style>
+    /* Terms Page Specific Styles */
+    .terms-hero {
+        background: radial-gradient(circle at 50% 50%, rgba(245, 158, 11, 0.15) 0%, transparent 70%);
+        padding: var(--space-16) 0;
+        text-align: center;
+    }
+    .terms-content {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: var(--space-8);
+        background: var(--bg-card);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--border-2);
+        border-radius: var(--radius-2xl);
+    }
+    .terms-section {
+        margin-bottom: var(--space-8);
+        padding-bottom: var(--space-8);
+        border-bottom: 1px solid var(--border-1);
+    }
+    .terms-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+    .terms-title {
+        color: var(--aurora-gold);
+        font-size: 1.5rem;
+        margin-bottom: var(--space-4);
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+    }
+    .terms-list {
+        list-style: none;
+        padding: 0;
+    }
+    .terms-list li {
+        margin-bottom: var(--space-3);
+        padding-right: var(--space-4);
+        position: relative;
+        color: var(--text-secondary);
+    }
+    .terms-list li::before {
+        content: '📌';
+        position: absolute;
+        right: -10px;
+        top: 0;
+        font-size: 0.8rem;
+    }
+    .warning-box {
+        background: rgba(245, 158, 11, 0.1);
+        border: 1px solid rgba(245, 158, 11, 0.3);
+        border-radius: var(--radius-lg);
+        padding: var(--space-6);
+        margin: var(--space-6) 0;
+        color: var(--text-secondary);
+    }
+    .warning-box strong {
+        color: var(--aurora-gold);
+        display: block;
+        margin-bottom: var(--space-2);
+        font-size: 1.1rem;
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="terms-hero">
+        <span class="hero-icon">📜</span>
+        <p class="hero-subtitle">
+            باستخدامك للمنصة، أنت توافق على هذه الشروط<br>
+            <span style="color: var(--text-tertiary);">اقرأها بعناية</span>
+        </p>
+    </div>
+    <div class="terms-content">
+        <div class="terms-section">
+            <h2 class="terms-title">
+                <span>🤝</span> اتفاقية المستخدم
+            </h2>
+            <p style="color: var(--text-secondary); line-height: 1.8;">
+                باستخدامك لمنصة CyberShield Ultra، أنت توافق على الالتزام بهذه الشروط والأحكام.
+                إذا كنت لا توافق على أي جزء من هذه الشروط، يرجى عدم استخدام خدماتنا.
+            </p>
+        </div>
+        <div class="terms-section">
+            <h2 class="terms-title">
+                <span>📋</span> وصف الخدمات
+            </h2>
+            <p style="color: var(--text-secondary); line-height: 1.8;">
+                نقدم مجموعة من أدوات الأمن السيبراني المجانية لفحص وتحليل:
+            </p>
+            <ul class="terms-list">
+                <li>أرقام الهواتف (الكشف عن الاحتيال، المشغل، الموقع)</li>
+                <li>البريد الإلكتروني (الكشف عن البريد المؤقت والمزيف)</li>
+                <li>كلمات المرور (تحليل القوة ووقت الكسر)</li>
+                <li>الروابط والنطاقات (كشف التصيد والمواقع الضارة)</li>
+                <li>عناوين IP (تحليل النوع والموقع)</li>
+                <li>وغيرها من الأدوات الأمنية</li>
+            </ul>
+        </div>
+        <div class="terms-section">
+            <h2 class="terms-title">
+                <span>✅</span> الاستخدام المسموح
+            </h2>
+            <ul class="terms-list">
+                <li>الاستخدام الشخصي والتجاري مسموح</li>
+                <li>يمكنك استخدام الأدوات لأغراض أمنية مشروعة</li>
+                <li>مسموح بمشاركة نتائج الفحص مع الآخرين</li>
+                <li>يمكنك اقتراح تحسينات وإبلاغ عن أخطاء</li>
+                <li>الاستخدام التعليمي والأكاديمي مرحب به</li>
+            </ul>
+        </div>
+        <div class="terms-section">
+            <h2 class="terms-title">
+                <span>🚫</span> الاستخدام الممنوع
+            </h2>
+            <ul class="terms-list">
+                <li>استخدام الأدوات لأغراض غير قانونية أو ضارة</li>
+                <li>محاولة اختراق المنصة أو تعطيلها</li>
+                <li>إرسال كميات هائلة من الطلبات (الهجمات)</li>
+                <li>استخدام البيانات لأغراض تتبع أو انتهاك خصوصية</li>
+                <li>بيع أو ترخيص الخدمات دون موافقة خطية</li>
+                <li>استخدام الأدوات لانتحال شخصية الآخرين</li>
+                <li>نشر نتائج فحص لأشخاص بدون موافقتهم</li>
+            </ul>
+        </div>
+        <div class="warning-box">
+            <strong>⚠️ تحذير مهم</strong>
+            <p style="margin: 0;">
+                أي محاولة لتعطيل المنصة، اختراقها، أو استخدامها بشكل غير قانوني ستعرضك للمساءلة
+                القانونية. نحن نتعاون مع الجهات المختصة لملاحقة المخالفين.
+            </p>
+        </div>
+        <div class="terms-section">
+            <h2 class="terms-title">
+                <span>🔒</span> الخصوصية والأمان
+            </h2>
+            <p style="color: var(--text-secondary); line-height: 1.8;">
+                نحن نأخذ خصوصيتك على محمل الجد. يرجى قراءة <a href="/privacy" style="color: var(--aurora-gold);">سياسة الخصوصية</a>
+                لفهم كيفية تعاملنا مع بياناتك. باستخدامك للمنصة، أنت توافق على ممارساتنا في جمع
+                واستخدام المعلومات كما هو موضح في سياسة الخصوصية.
+            </p>
+        </div>
+        <div class="terms-section">
+            <h2 class="terms-title">
+                <span>⚖️</span> إخلاء المسؤولية
+            </h2>
+            <p style="color: var(--text-secondary); line-height: 1.8;">
+                نقدم خدماتنا "كما هي" بدون أي ضمانات. لا نضمن دقة ١٠٠٪ للنتائج، ويجب عليك التحقق
+                بشكل مستقل. نحن غير مسؤولين عن أي أضرار ناتجة عن استخدامك للخدمات.
+            </p>
+        </div>
+        <div class="terms-section">
+            <h2 class="terms-title">
+                <span>📊</span> دقة المعلومات
+            </h2>
+            <p style="color: var(--text-secondary); line-height: 1.8;">
+                نبذل قصارى جهدنا لتقديم أدق المعلومات، لكن لا يمكننا ضمان دقة ١٠٠٪. قواعد بياناتنا
+                تعتمد على مصادر متعددة وقد تحتوي على أخطاء. استخدم النتائج كمرجع فقط.
+            </p>
+        </div>
+        <div class="terms-section">
+            <h2 class="terms-title">
+                <span>©️</span> حقوق الملكية الفكرية
+            </h2>
+            <p style="color: var(--text-secondary); line-height: 1.8;">
+                جميع حقوق الملكية الفكرية للمنصة ومحتواها محفوظة لـ CyberShield Ultra. لا يجوز نسخ
+                أو توزيع أو تعديل أي جزء من المنصة دون إذن كتابي.
+            </p>
+        </div>
+        <div class="terms-section">
+            <h2 class="terms-title">
+                <span>🔗</span> روابط خارجية
+            </h2>
+            <p style="color: var(--text-secondary); line-height: 1.8;">
+                قد تحتوي منصتنا على روابط لمواقع خارجية. نحن غير مسؤولين عن محتوى أو سياسات هذه
+                المواقع. استخدامك لها على مسؤوليتك الخاصة.
+            </p>
+        </div>
+        <div class="terms-section">
+            <h2 class="terms-title">
+                <span>⏱️</span> التعديلات على الخدمة
+            </h2>
+            <p style="color: var(--text-secondary); line-height: 1.8;">
+                نحتفظ بالحق في تعديل أو إيقاف أي جزء من الخدمة في أي وقت دون إشعار مسبق. لسنا مسؤولين
+                عن أي انقطاع أو توقف للخدمة.
+            </p>
+        </div>
+        <div class="terms-section">
+            <h2 class="terms-title">
+                <span>📝</span> التعديلات على الشروط
+            </h2>
+            <p style="color: var(--text-secondary); line-height: 1.8;">
+                قد نقوم بتحديث هذه الشروط من وقت لآخر. سنقوم بنشر التغييرات على هذه الصفحة. استمرارك
+                في استخدام الخدمة بعد التغييرات يعني موافقتك على الشروط المعدلة.
+            </p>
+        </div>
+        <div class="terms-section">
+            <h2 class="terms-title">
+                <span>⚖️</span> القانون الواجب التطبيق
+            </h2>
+            <p style="color: var(--text-secondary); line-height: 1.8;">
+                تخضع هذه الشروط للقوانين العربية والدولية. في حالة وجود نزاع، يتم حله عن طريق التحكيم
+                في محاكم الدولة التي يتخذ فيها المقر الرئيسي للمنصة.
+            </p>
+        </div>
+        <div class="terms-section">
+            <h2 class="terms-title">
+                <span>📞</span> التواصل
+            </h2>
+            <p style="color: var(--text-secondary); line-height: 1.8;">
+                للاستفسارات المتعلقة بهذه الشروط، يرجى التواصل معنا عبر:
+            </p>
+            <ul class="terms-list">
+                <li>📧 البريد الإلكتروني: legal@cybershield.pro</li>
+                <li>📞 نموذج الاتصال: <a href="/contact" style="color: var(--aurora-gold);">اضغط هنا</a></li>
+            </ul>
+        </div>
+        <div class="last-updated" style="text-align: center; color: var(--text-tertiary); margin-top: var(--space-8);">
+            آخر تحديث: ١٥ فبراير ٢٠٢٦
+        </div>
+    </div>
+</div>
+{% endblock %}

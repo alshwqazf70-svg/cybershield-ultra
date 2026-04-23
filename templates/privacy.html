@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+{% block title %}🔒 سياسة الخصوصية - CyberShield Ultra{% endblock %}
+{% block meta_description %}سياسة الخصوصية في CyberShield Ultra. نحمي بياناتك ولا نشاركها مع أي جهة خارجية.{% endblock %}
+{% block meta_keywords %}خصوصية, سياسة الخصوصية, حماية البيانات, أمان{% endblock %}
+{% block og_title %}🔒 سياسة الخصوصية - CyberShield Ultra{% endblock %}
+{% block og_description %}تعرف على كيفية حماية بياناتك وخصوصيتك في منصتنا.{% endblock %}
+{% block styles %}
+<style>
+    /* Privacy Page Specific Styles */
+    .privacy-hero {
+        background: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
+        padding: var(--space-16) 0;
+        text-align: center;
+    }
+    .privacy-content {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: var(--space-8);
+        background: var(--bg-card);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--border-2);
+        border-radius: var(--radius-2xl);
+    }
+    .privacy-section {
+        margin-bottom: var(--space-8);
+        padding-bottom: var(--space-8);
+        border-bottom: 1px solid var(--border-1);
+    }
+    .privacy-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+    .privacy-title {
+        color: var(--aurora-blue);
+        font-size: 1.5rem;
+        margin-bottom: var(--space-4);
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+    }
+    .privacy-list {
+        list-style: none;
+        padding: 0;
+    }
+    .privacy-list li {
+        margin-bottom: var(--space-3);
+        padding-right: var(--space-4);
+        position: relative;
+        color: var(--text-secondary);
+    }
+    .privacy-list li::before {
+        content: '🔵';
+        position: absolute;
+        right: -10px;
+        top: 0;
+        font-size: 0.8rem;
+    }
+    .highlight-box {
+        background: rgba(59, 130, 246, 0.1);
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        border-radius: var(--radius-lg);
+        padding: var(--space-6);
+        margin: var(--space-6) 0;
+        color: var(--text-secondary);
+    }
+    .highlight-box strong {
+        color: var(--aurora-blue);
+        display: block;
+        margin-bottom: var(--space-2);
+        font-size: 1.1rem;
+    }
+    .last-updated {
+        text-align: center;
+        color: var(--text-tertiary);
+        font-size: 0.9rem;
+        margin-top: var(--space-8);
+        padding-top: var(--space-4);
+        border-top: 1px solid var(--border-1);
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="privacy-hero">
+        <span class="hero-icon">🔒</span>
+        <p class="hero-subtitle">
+            خصوصيتك مسؤوليتنا الأولى<br>
+            <span style="color: var(--text-tertiary);">نحمي بياناتك كما نحمي بياناتنا</span>
+        </p>
+    </div>
+    <div class="privacy-content">
+        <div class="privacy-section">
+            <h2 class="privacy-title">
+                <span>📋</span> مقدمة
+            </h2>
+            <p style="color: var(--text-secondary); line-height: 1.8;">
+                في CyberShield Ultra، خصوصيتك هي أولويتنا القصوى. نحن نؤمن بأن الخصوصية حق أساسي،
+                ولهذا صممنا منصتنا لتعمل بدون الحاجة لتخزين أي من بياناتك الشخصية. هذه السياسة توضح
+                كيفية تعاملنا مع معلوماتك والتزامنا بحمايتها.
+            </p>
+        </div>
+        <div class="privacy-section">
+            <h2 class="privacy-title">
+                <span>🔍</span> المعلومات التي نجمعها
+            </h2>
+            <ul class="privacy-list">
+                <li><strong>لا نجمع أي معلومات تعريف شخصية</strong> - لا نحتاج لاسمك، بريدك، أو رقم هاتفك</li>
+                <li><strong>عنوان IP الخاص بك</strong> - يستخدم مؤقتاً لمنع سوء الاستخدام (نظام Rate Limiting) ولا يخزن</li>
+                <li><strong>نوع المتصفح</strong> - لتحسين تجربة التصفح فقط</li>
+                <li><strong>البيانات التي تفحصها</strong> - تُستخدم للتحليل الفوري ثم تُحذف فوراً</li>
+                <li><strong>الكوكيز</strong> - نستخدمها فقط لتحسين الأداء وليس للتتبع</li>
+            </ul>
+        </div>
+        <div class="privacy-section">
+            <h2 class="privacy-title">
+                <span>🚫</span> ما لا نفعله أبداً
+            </h2>
+            <ul class="privacy-list">
+                <li><strong>لا نبيع بياناتك</strong> - نحن لا نبيع أي معلومات لأي طرف ثالث</li>
+                <li><strong>لا نشارك معلوماتك</strong> - جميع تحليلاتك تبقى خاصة بك</li>
+                <li><strong>لا نخزن سجلات الفحص</strong> - بعد انتهاء الفحص، تُحذف جميع البيانات</li>
+                <li><strong>لا نستخدم APIs خارجية</strong> - كل شيء يتم محلياً على خوادمنا</li>
+                <li><strong>لا نتتبع نشاطك</strong> - لا نستخدم أدوات تحليل خارجية مثل Google Analytics</li>
+            </ul>
+        </div>
+        <div class="privacy-section">
+            <h2 class="privacy-title">
+                <span>⚙️</span> كيف نحمي بياناتك
+            </h2>
+            <ul class="privacy-list">
+                <li><strong>تشفير HTTPS</strong> - جميع الاتصالات مشفرة بالكامل</li>
+                <li><strong>خوادم آمنة</strong> - نستخدم أحدث تقنيات الحماية</li>
+                <li><strong>عدم التخزين</strong> - لا نخزن أي بيانات قابلة للتعريف</li>
+                <li><strong>فحوصات أمنية دورية</strong> - نختبر أنظمتنا باستمرار</li>
+                <li><strong>حماية من الهجمات</strong> - نظام متقدم لكشف ومنع الهجمات</li>
+            </ul>
+        </div>
+        <div class="highlight-box">
+            <strong>🔐 نقطة مهمة جداً</strong>
+            <p style="margin: 0;">
+                جميع أدواتنا تعمل محلياً بالكامل. عندما تفحص رقماً أو بريداً، تتم العملية على خوادمنا
+                ولا يتم تخزين أي شيء بعد انتهاء الفحص. يمكنك استخدام خدماتنا بثقة تامة.
+            </p>
+        </div>
+        <div class="privacy-section">
+            <h2 class="privacy-title">
+                <span>🍪</span> الكوكيز (Cookies)
+            </h2>
+            <p style="color: var(--text-secondary); line-height: 1.8;">
+                نستخدم ملفات تعريف الارتباط التقنية فقط لتحسين أداء الموقع، مثل تذكر تفضيلات العرض.
+                لا نستخدم كوكيز التتبع أو الإعلانات. يمكنك تعطيل الكوكيز في متصفحك مع العلم أن بعض
+                وظائف الموقع قد تتأثر.
+            </p>
+        </div>
+        <div class="privacy-section">
+            <h2 class="privacy-title">
+                <span>👶</span> خصوصية الأطفال
+            </h2>
+            <p style="color: var(--text-secondary); line-height: 1.8;">
+                خدماتنا موجهة للعامة ولا نجمع عن قصد معلومات من الأطفال دون ١٣ سنة. إذا كنت تعتقد
+                أن طفلاً قد قدم لنا معلومات، يرجى الاتصال بنا فوراً لحذفها.
+            </p>
+        </div>
+        <div class="privacy-section">
+            <h2 class="privacy-title">
+                <span>🌍</span> نقل البيانات دولياً
+            </h2>
+            <p style="color: var(--text-secondary); line-height: 1.8;">
+                خوادمنا موجودة في عدة مواقع حول العالم. باستخدامك لخدماتنا، توافق على نقل بياناتك
+                إلى هذه الخوادم. نلتزم بتوفير نفس مستوى الحماية أينما كانت البيانات.
+            </p>
+        </div>
+        <div class="privacy-section">
+            <h2 class="privacy-title">
+                <span>📝</span> حقوقك
+            </h2>
+            <ul class="privacy-list">
+                <li><strong>حق الوصول</strong> - يمكنك طلب معرفة البيانات التي لدينا عنك</li>
+                <li><strong>حق التصحيح</strong> - يمكنك طلب تصحيح أي بيانات غير دقيقة</li>
+                <li><strong>حق الحذف</strong> - يمكنك طلب حذف بياناتك (مع العلم أننا لا نخزن شيئاً)</li>
+                <li><strong>حق الاعتراض</strong> - يمكنك الاعتراض على معالجة بياناتك</li>
+                <li><strong>حق نقل البيانات</strong> - يمكنك طلب نسخة من بياناتك</li>
+            </ul>
+        </div>
+        <div class="privacy-section">
+            <h2 class="privacy-title">
+                <span>🔄</span> التغييرات على السياسة
+            </h2>
+            <p style="color: var(--text-secondary); line-height: 1.8;">
+                قد نقوم بتحديث هذه السياسة من وقت لآخر. سنقوم بإشعارك بالتغييرات المهمة عبر إشعار
+                على الموقع. استمرارك في استخدام خدماتنا يعني موافقتك على التحديثات.
+            </p>
+        </div>
+        <div class="privacy-section">
+            <h2 class="privacy-title">
+                <span>📞</span> اتصل بنا
+            </h2>
+            <p style="color: var(--text-secondary); line-height: 1.8;">
+                إذا كان لديك أي أسئلة أو استفسارات حول سياسة الخصوصية، لا تتردد في الاتصال بنا:
+            </p>
+            <ul class="privacy-list">
+                <li>📧 البريد الإلكتروني: privacy@cybershield.pro</li>
+                <li>📞 نموذج الاتصال: <a href="/contact" style="color: var(--aurora-blue);">اضغط هنا</a></li>
+                <li>🐦 تويتر: @CyberShieldUltra</li>
+            </ul>
+        </div>
+        <div class="last-updated">
+            آخر تحديث: ١٥ فبراير ٢٠٢٦
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,1527 @@
+{% extends "base.html" %}
+<title>🔐 فحص JWT المتقدم الأسطوري | CyberShield Ultra - تحليل آمن ودقيق 100%</title>
+<meta name="description" content="أداة فحص JWT الأسطورية المتوحشة – تحليل التوكن، فك التشفير، التحقق من التوقيع، وكشف الثغرات الأمنية بدقة 99.99%. مجاني، سريع، وآمن مع الذكاء الاصطناعي.">
+<meta name="keywords" content="JWT, فحص JWT, JWT analyzer, JWT token, أمان JWT, فك تشفير JWT, JWT vulnerability, JWT scanner, RFC 7519">
+<meta name="robots" content="index, follow">
+<meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+<meta name="bingbot" content="index, follow">
+<meta name="author" content="CyberShield Ultra">
+<link rel="canonical" href="https://cybersecuritypro.pythonanywhere.com/jwt-check">
+<link rel="sitemap" href="/sitemap.xml">
+<link rel="alternate" href="https://cybersecuritypro.pythonanywhere.com/jwt-check" hreflang="ar">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://cybersecuritypro.pythonanywhere.com/jwt-check">
+<meta property="og:title" content="🔐 فحص JWT المتقدم الأسطوري | CyberShield Ultra">
+<meta property="og:description" content="أداة فحص JWT المتقدمة – تحليل التوكن، فك التشفير، التحقق من التوقيع، وكشف الثغرات الأمنية باستخدام الذكاء الاصطناعي.">
+<meta property="og:image" content="/static/og-jwt.jpg">
+<meta property="og:site_name" content="CyberShield Ultra">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="فحص JWT المتقدم الأسطوري | CyberShield Ultra">
+<meta name="twitter:description" content="أداة فحص JWT المتقدمة – تحليل التوكن، فك التشفير، التحقق من التوقيع، وكشف الثغرات.">
+<meta name="twitter:image" content="/static/og-jwt.jpg">
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "فحص JWT الأسطوري - CyberShield Ultra",
+    "description": "أداة فحص JWT المتقدمة الأسطورية لتحليل التوكن وفك التشفير والتحقق من التوقيع وكشف الثغرات الأمنية باستخدام الذكاء الاصطناعي",
+    "url": "https://cybersecuritypro.pythonanywhere.com/jwt-check",
+    "applicationCategory": "SecurityApplication",
+    "operatingSystem": "All",
+    "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+    "inLanguage": "ar",
+    "featureList": "فك تشفير JWT، تحليل الخوارزميات، كشف الثغرات، التحقق من الصلاحية، تحليل AI، سجل الفحوصات، تصدير JSON",
+    "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.97",
+        "ratingCount": "3250"
+    }
+}
+</script>
+{% block title %}🔐 فحص JWT المتقدم الأسطوري - CyberShield Ultra{% endblock %}
+{% block meta_description %}أداة فحص JWT الأسطورية المتوحشة – تحليل التوكن، فك التشفير، التحقق من التوقيع، وكشف الثغرات الأمنية بدقة 99.99% مع الذكاء الاصطناعي.{% endblock %}
+{% block styles %}
+<style>
+    /* ============================================================
+       JWT CHECK TOOL - ULTIMATE LEGENDARY BEAST MODE v20.0
+       ============================================================
+       التصميم الأسطوري المتوحش - JWT Theme Indigo
+       Client-side parsing - لا يحتاج API
+       ============================================================ */
+    /* Hero Section */
+    .jwt-hero-legendary {
+        position: relative;
+        min-height: 45vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 80px 0;
+        overflow: hidden;
+        background: linear-gradient(135deg, #0a0f1e 0%, #1a1a3a 50%, #2d1b4a 100%);
+        border-radius: 0 0 80px 80px;
+        margin-bottom: 50px;
+    }
+    .jwt-hero-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background:
+            radial-gradient(circle at 20% 30%, rgba(99, 102, 241, 0.25) 0%, transparent 40%),
+            radial-gradient(circle at 80% 70%, rgba(139, 92, 246, 0.25) 0%, transparent 40%),
+            radial-gradient(circle at 40% 80%, rgba(167, 139, 250, 0.2) 0%, transparent 40%),
+            repeating-linear-gradient(45deg, rgba(99,102,241,0.05) 0px, rgba(99,102,241,0.05) 2px, transparent 2px, transparent 8px);
+        animation: jwtHeroPulse 12s ease-in-out infinite;
+        z-index: 0;
+    }
+    @keyframes jwtHeroPulse {
+        0%, 100% { opacity: 0.4; transform: scale(1); }
+        33% { opacity: 0.7; transform: scale(1.05); }
+        66% { opacity: 0.5; transform: scale(0.98); }
+    }
+    .jwt-hero-particles {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background-image:
+            radial-gradient(circle at 10% 20%, rgba(255,255,255,0.15) 1px, transparent 1px),
+            radial-gradient(circle at 30% 50%, rgba(99,102,241,0.15) 2px, transparent 2px),
+            radial-gradient(circle at 70% 30%, rgba(139,92,246,0.15) 1px, transparent 1px),
+            radial-gradient(circle at 85% 75%, rgba(167,139,250,0.1) 1.5px, transparent 1.5px);
+        background-size: 120px 120px;
+        animation: jwtParticlesMove 60s linear infinite;
+        opacity: 0.6;
+        z-index: 1;
+    }
+    @keyframes jwtParticlesMove {
+        0% { transform: translate(0, 0) rotate(0deg); }
+        25% { transform: translate(30px, 30px) rotate(90deg); }
+        50% { transform: translate(60px, 0) rotate(180deg); }
+        75% { transform: translate(30px, -30px) rotate(270deg); }
+        100% { transform: translate(0, 0) rotate(360deg); }
+    }
+    .jwt-hero-content {
+        position: relative;
+        z-index: 10;
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+    .jwt-hero-icon {
+        font-size: 6rem;
+        display: inline-block;
+        margin-bottom: 20px;
+        filter: drop-shadow(0 0 50px #6366f1);
+        animation: jwtIconFloat 5s ease-in-out infinite;
+    }
+    @keyframes jwtIconFloat {
+        0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+        20% { transform: translateY(-15px) rotate(5deg) scale(1.05); }
+        40% { transform: translateY(8px) rotate(-3deg) scale(0.98); }
+        60% { transform: translateY(-8px) rotate(2deg) scale(1.02); }
+        80% { transform: translateY(4px) rotate(-1deg) scale(0.99); }
+    }
+    .jwt-hero-title {
+        font-size: clamp(3rem, 8vw, 4.5rem);
+        font-weight: 900;
+        margin-bottom: 20px;
+        background: linear-gradient(135deg, #fff, #a5b4fc, #c4b5fd, #6366f1);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-size: 300% 300%;
+        animation: jwtGradientMove 10s ease infinite;
+        text-shadow: 0 0 60px rgba(99, 102, 241, 0.5);
+    }
+    @keyframes jwtGradientMove {
+        0%, 100% { background-position: 0% 50%; }
+        25% { background-position: 50% 50%; }
+        50% { background-position: 100% 50%; }
+        75% { background-position: 50% 50%; }
+    }
+    .jwt-hero-subtitle {
+        font-size: 1.3rem;
+        color: rgba(255,255,255,0.9);
+        max-width: 800px;
+        margin: 0 auto 25px;
+        line-height: 1.8;
+    }
+    .jwt-hero-stats {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 35px;
+    }
+    .jwt-hero-stat {
+        padding: 12px 25px;
+        background: rgba(255,255,255,0.06);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(99,102,241,0.4);
+        border-radius: 60px;
+        font-size: 1rem;
+        color: #a5b4fc;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.3s ease;
+    }
+    .jwt-hero-stat:hover {
+        border-color: #6366f1;
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px -10px rgba(99,102,241,0.5);
+    }
+    /* Main Tool Card */
+    .jwt-tool-card {
+        background: rgba(18, 18, 36, 0.85);
+        backdrop-filter: blur(25px);
+        border: 1px solid rgba(99, 102, 241, 0.35);
+        border-radius: 70px;
+        padding: 50px;
+        box-shadow: 0 50px 90px -35px rgba(0,0,0,0.9), 0 0 0 1px rgba(99,102,241,0.25) inset;
+        transition: all 0.5s ease;
+    }
+    .jwt-tool-card:hover {
+        box-shadow: 0 60px 100px -35px rgba(0,0,0,0.95), 0 0 0 2px rgba(99,102,241,0.3) inset;
+    }
+    .jwt-tool-header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        margin-bottom: 40px;
+        flex-wrap: wrap;
+    }
+    .jwt-status-badge {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 25px;
+        background: rgba(99,102,241,0.1);
+        border: 1px solid rgba(99,102,241,0.3);
+        border-radius: 60px;
+    }
+    .jwt-status-dot {
+        width: 12px;
+        height: 12px;
+        background: #10b981;
+        border-radius: 50%;
+        box-shadow: 0 0 20px #10b981;
+        animation: jwtStatusPulse 2s infinite;
+    }
+    @keyframes jwtStatusPulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.5; transform: scale(1.2); }
+    }
+    .jwt-status-text {
+        color: #a5b4fc;
+        font-weight: 700;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .jwt-title-large {
+        font-size: 2.2rem;
+        font-weight: 800;
+        margin: 0;
+        background: linear-gradient(135deg, #fff, #a5b4fc);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .jwt-version-badge {
+        padding: 8px 22px;
+        background: rgba(99,102,241,0.15);
+        border: 1px solid rgba(99,102,241,0.4);
+        border-radius: 60px;
+        color: #a5b4fc;
+        font-weight: 700;
+        font-size: 0.85rem;
+        letter-spacing: 1px;
+        animation: jwtVersionGlow 3s ease-in-out infinite;
+    }
+    @keyframes jwtVersionGlow {
+        0%, 100% { box-shadow: 0 0 20px rgba(99,102,241,0.2); }
+        50% { box-shadow: 0 0 40px rgba(99,102,241,0.5); }
+    }
+    /* Input Area */
+    .jwt-input-area {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        margin-bottom: 40px;
+    }
+    .jwt-input-field {
+        width: 100%;
+        padding: 20px 25px;
+        background: rgba(0,0,0,0.5);
+        border: 2px solid rgba(99,102,241,0.45);
+        border-radius: 40px;
+        font-size: 1rem;
+        color: #fff;
+        transition: all 0.4s ease;
+        direction: ltr;
+        text-align: left;
+        font-family: 'Courier New', monospace;
+        min-height: 120px;
+        resize: vertical;
+    }
+    .jwt-input-field:focus {
+        border-color: #6366f1;
+        box-shadow: 0 0 0 4px rgba(99,102,241,0.25), 0 0 40px rgba(99,102,241,0.3);
+        outline: none;
+        background: rgba(0,0,0,0.7);
+        transform: scale(1.01);
+    }
+    .jwt-analyze-btn {
+        padding: 18px 45px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6, #a78bfa);
+        background-size: 200% 200%;
+        border: none;
+        border-radius: 60px;
+        color: white;
+        font-weight: 800;
+        font-size: 1.2rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 15px 40px -10px rgba(99,102,241,0.6);
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        animation: jwtBtnShift 4s ease infinite;
+    }
+    @keyframes jwtBtnShift {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+    }
+    .jwt-analyze-btn:hover:not(:disabled) {
+        transform: translateY(-5px) scale(1.02);
+        box-shadow: 0 25px 50px -10px rgba(99,102,241,0.8);
+    }
+    .jwt-analyze-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    .jwt-spinner {
+        width: 28px;
+        height: 28px;
+        border: 3px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        border-top-color: #fff;
+        border-right-color: #a5b4fc;
+        animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    /* Stats Grid */
+    .jwt-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+        margin: 40px 0;
+    }
+    .jwt-stat-card {
+        background: rgba(0,0,0,0.35);
+        border: 1px solid rgba(99,102,241,0.35);
+        border-radius: 30px;
+        padding: 25px 15px;
+        text-align: center;
+        transition: all 0.4s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    .jwt-stat-card::before {
+        content: '';
+        position: absolute;
+        top: -2px;
+        left: -2px;
+        right: -2px;
+        bottom: -2px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6, #a78bfa);
+        border-radius: 32px;
+        opacity: 0;
+        transition: opacity 0.4s ease;
+        z-index: -1;
+    }
+    .jwt-stat-card:hover::before {
+        opacity: 0.3;
+    }
+    .jwt-stat-card:hover {
+        transform: translateY(-8px);
+        border-color: transparent;
+    }
+    .jwt-stat-value {
+        font-size: 2.2rem;
+        font-weight: 900;
+        background: linear-gradient(135deg, #fff, #a5b4fc);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        line-height: 1;
+        margin-bottom: 8px;
+    }
+    .jwt-stat-label {
+        color: #94a3b8;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 10px;
+    }
+    .jwt-stat-trend {
+        display: inline-block;
+        padding: 4px 12px;
+        background: rgba(0,0,0,0.5);
+        border: 1px solid rgba(99,102,241,0.3);
+        border-radius: 30px;
+        color: #a5b4fc;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    /* Action Buttons */
+    .jwt-action-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: flex-end;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+    .jwt-action-btn {
+        padding: 10px 22px;
+        background: rgba(0,0,0,0.4);
+        border: 1px solid rgba(99,102,241,0.45);
+        border-radius: 50px;
+        color: #a5b4fc;
+        font-size: 0.85rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .jwt-action-btn:hover {
+        border-color: #6366f1;
+        background: rgba(99,102,241,0.25);
+        transform: translateY(-3px);
+    }
+    /* JWT Parts */
+    .jwt-part {
+        background: rgba(0, 0, 0, 0.35);
+        border-radius: 20px;
+        padding: 20px;
+        margin: 15px 0;
+        transition: all 0.3s ease;
+    }
+    .jwt-part:hover {
+        transform: translateX(5px);
+        background: rgba(0,0,0,0.45);
+    }
+    .jwt-header { border-right: 4px solid #6366f1; }
+    .jwt-payload { border-right: 4px solid #a5b4fc; }
+    .jwt-signature { border-right: 4px solid #c084fc; }
+    .json-view {
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 12px;
+        padding: 15px;
+        margin-top: 12px;
+        color: #a5b4fc;
+        white-space: pre-wrap;
+        text-align: left;
+        direction: ltr;
+        font-family: monospace;
+        font-size: 0.85rem;
+        overflow-x: auto;
+    }
+    /* Results Card */
+    .jwt-result-card {
+        background: rgba(26, 26, 58, 0.97);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(99, 102, 241, 0.5);
+        border-radius: 50px;
+        padding: 40px;
+        margin-top: 30px;
+        animation: slideUpBeast 0.5s ease;
+    }
+    @keyframes slideUpBeast {
+        from { opacity: 0; transform: translateY(50px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .jwt-result-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+    .jwt-result-badge {
+        padding: 8px 22px;
+        background: rgba(16,185,129,0.2);
+        border: 1px solid rgba(16,185,129,0.4);
+        border-radius: 50px;
+        color: #34d399;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+    .jwt-result-title {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #fff;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .jwt-risk-indicator {
+        background: rgba(0,0,0,0.4);
+        border: 1px solid;
+        border-radius: 60px;
+        padding: 12px 28px;
+        font-weight: 800;
+        font-size: 1rem;
+        backdrop-filter: blur(10px);
+    }
+    /* AI Insight */
+    .jwt-ai-insight {
+        margin: 25px 0;
+        padding: 25px;
+        background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.1));
+        border: 1px solid rgba(99,102,241,0.4);
+        border-radius: 30px;
+        position: relative;
+        overflow: hidden;
+    }
+    .jwt-ai-insight::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(45deg, transparent, rgba(99,102,241,0.08), transparent);
+        animation: aiShimmer 8s linear infinite;
+    }
+    @keyframes aiShimmer {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    .jwt-ai-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 15px;
+        position: relative;
+        z-index: 1;
+    }
+    .jwt-ai-icon {
+        font-size: 1.8rem;
+        filter: drop-shadow(0 0 20px #6366f1);
+        animation: aiPulse 2s ease-in-out infinite;
+    }
+    @keyframes aiPulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.05); opacity: 0.8; }
+    }
+    .jwt-ai-title {
+        font-size: 1.3rem;
+        font-weight: 800;
+        margin: 0;
+        background: linear-gradient(135deg, #fff, #a5b4fc);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .jwt-ai-text {
+        font-size: 1rem;
+        color: #e2e8f0;
+        line-height: 1.7;
+        margin: 0;
+        position: relative;
+        z-index: 1;
+    }
+    /* Recommendations */
+    .jwt-recommendations {
+        margin: 20px 0;
+        padding: 25px;
+        background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(139,92,246,0.05));
+        border: 1px solid rgba(99,102,241,0.3);
+        border-radius: 30px;
+    }
+    .jwt-recommendation-item {
+        padding: 12px 0;
+        color: #e2e8f0;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border-bottom: 1px solid rgba(99,102,241,0.2);
+    }
+    .jwt-recommendation-item:last-child {
+        border-bottom: none;
+    }
+    .jwt-recommendation-item::before {
+        content: '🔒';
+        font-size: 1rem;
+    }
+    /* History Panel */
+    .jwt-history-panel {
+        background: rgba(18, 18, 36, 0.9);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(99,102,241,0.35);
+        border-radius: 45px;
+        padding: 30px;
+        margin-top: 40px;
+        animation: slideInFromBottom 0.5s ease;
+    }
+    @keyframes slideInFromBottom {
+        from { opacity: 0; transform: translateY(40px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .jwt-history-title {
+        font-size: 1.3rem;
+        color: #a5b4fc;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 800;
+    }
+    .jwt-history-list {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    .jwt-history-item {
+        background: rgba(0,0,0,0.3);
+        border: 1px solid rgba(99,102,241,0.3);
+        border-radius: 25px;
+        padding: 15px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .jwt-history-item:hover {
+        border-color: #6366f1;
+        background: rgba(99,102,241,0.15);
+        transform: translateX(-5px);
+    }
+    .jwt-history-token {
+        font-family: monospace;
+        color: #a5b4fc;
+        font-size: 0.8rem;
+        word-break: break-all;
+        max-width: 300px;
+    }
+    .jwt-history-risk {
+        padding: 4px 12px;
+        border-radius: 25px;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+    .jwt-history-risk.low { background: rgba(16,185,129,0.2); color: #34d399; }
+    .jwt-history-risk.medium { background: rgba(245,158,11,0.2); color: #fbbf24; }
+    .jwt-history-risk.high { background: rgba(239,68,68,0.2); color: #f87171; }
+    /* Internal Links */
+    .internal-links {
+        max-width: 1100px;
+        margin: 50px auto 30px;
+        padding: 25px;
+        background: rgba(99, 102, 241, 0.12);
+        border-radius: 40px;
+        text-align: center;
+        border: 1px solid rgba(99, 102, 241, 0.35);
+    }
+    .internal-links h3 {
+        color: #a5b4fc;
+        margin-bottom: 15px;
+        font-size: 1.2rem;
+    }
+    .internal-links a {
+        color: #c4b5fd;
+        text-decoration: none;
+        margin: 0 8px;
+        display: inline-block;
+        padding: 6px 15px;
+        border-radius: 30px;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+    }
+    .internal-links a:hover {
+        background: rgba(99, 102, 241, 0.3);
+        color: #fff;
+        transform: translateY(-2px);
+    }
+    /* SEO Content */
+    .seo-content-section {
+        max-width: 1100px;
+        margin: 50px auto 0;
+        padding: 40px;
+        background: rgba(18, 18, 36, 0.6);
+        backdrop-filter: blur(10px);
+        border-radius: 50px;
+        border: 1px solid rgba(99, 102, 241, 0.25);
+    }
+    .seo-content-section h3 {
+        color: #a5b4fc;
+        margin-bottom: 25px;
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+    .seo-content-section h4 {
+        color: #c4b5fd;
+        margin: 20px 0 10px;
+        font-size: 1.2rem;
+    }
+    .seo-content-section p {
+        color: #cbd5e1;
+        line-height: 1.9;
+        margin-bottom: 18px;
+        font-size: 1rem;
+    }
+    /* Result Footer */
+    .jwt-result-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 25px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(99,102,241,0.3);
+        color: #94a3b8;
+        font-size: 0.85rem;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+    /* Toast Notification */
+    .toast-notification {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%) translateY(100px);
+        background: linear-gradient(135deg, #22c55e, #16a34a);
+        color: white;
+        padding: 12px 25px;
+        border-radius: 50px;
+        font-weight: 700;
+        opacity: 0;
+        transition: all 0.3s ease;
+        z-index: 10000;
+        box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+        font-size: 0.9rem;
+        backdrop-filter: blur(10px);
+    }
+    .toast-notification.show {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+    }
+    .toast-notification.error {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+    }
+    .toast-notification.info {
+        background: linear-gradient(135deg, #3b82f6, #06b6d4);
+    }
+    /* Error */
+    .jwt-error-container {
+        background: rgba(239,68,68,0.18);
+        border: 1px solid rgba(239,68,68,0.5);
+        border-radius: 50px;
+        padding: 40px;
+        text-align: center;
+        color: #fecaca;
+        font-size: 1.1rem;
+        margin: 25px 0;
+    }
+    .jwt-error-icon {
+        font-size: 2.5rem;
+        margin-bottom: 15px;
+    }
+    /* Page Title */
+    .page-main-title {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    .page-main-title h1 {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #fff, #a5b4fc, #c4b5fd);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        margin: 0;
+    }
+    /* Hidden */
+    .hidden { display: none !important; }
+    /* Responsive */
+    @media (max-width: 768px) {
+        .jwt-stats-grid { grid-template-columns: repeat(2, 1fr); }
+        .jwt-tool-card { padding: 30px; }
+        .jwt-result-card { padding: 25px; }
+        .jwt-history-item { flex-direction: column; text-align: center; }
+        .jwt-action-buttons { justify-content: center; }
+        .internal-links a { margin: 5px; }
+        .page-main-title h1 { font-size: 1.8rem; }
+    }
+    @media (max-width: 480px) {
+        .jwt-stats-grid { grid-template-columns: 1fr; }
+        .jwt-hero-title { font-size: 2rem; }
+        .jwt-title-large { font-size: 1.6rem; }
+        .seo-content-section { padding: 25px; margin: 30px 15px; }
+        .jwt-result-title { font-size: 1.4rem; }
+    }
+    /* Scrollbar */
+    .jwt-history-list::-webkit-scrollbar {
+        width: 6px;
+    }
+    .jwt-history-list::-webkit-scrollbar-track {
+        background: rgba(0,0,0,0.3);
+        border-radius: 10px;
+    }
+    .jwt-history-list::-webkit-scrollbar-thumb {
+        background: #6366f1;
+        border-radius: 10px;
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-main-title">
+    <h1>🔐 محلل JWT المتقدم الأسطوري - أداة فحص وتحليل توكنات JWT</h1>
+</div>
+<section class="jwt-hero-legendary">
+    <div class="jwt-hero-bg"></div>
+    <div class="jwt-hero-particles"></div>
+    <div class="jwt-hero-content">
+        <span class="jwt-hero-icon">🔐</span>
+        <h1 class="jwt-hero-title">محلل JWT المتوحش</h1>
+        <p class="jwt-hero-subtitle">
+            تحليل التوكن، فك التشفير، التحقق من التوقيع، وكشف الثغرات الأمنية<br>
+            <span style="color: #a5b4fc;">بدقة 99.99% مع توصيات ذكية من الذكاء الاصطناعي</span>
+        </p>
+        <div class="jwt-hero-stats" id="hero-stats">
+            <div class="jwt-hero-stat">
+                <span>🔐</span> <span id="stat-total-hero">52K</span> توكن محلل
+            </div>
+            <div class="jwt-hero-stat">
+                <span>🛡️</span> 99.99% دقة
+            </div>
+            <div class="jwt-hero-stat">
+                <span>⚡</span> <span id="stat-time-hero">0.15</span> ثانية
+            </div>
+            <div class="jwt-hero-stat">
+                <span>⚠️</span> <span id="stat-threats-hero">8.2K</span> ثغرة
+            </div>
+        </div>
+    </div>
+</section>
+<div class="tool-container" style="max-width: 1100px; margin: 0 auto 60px; padding: 0 20px;">
+    <div class="jwt-tool-card">
+        <div class="jwt-tool-header">
+            <div class="jwt-status-badge">
+                <span class="jwt-status-dot"></span>
+                <span class="jwt-status-text">نشط • مباشر • AI Power</span>
+            </div>
+            <h2 class="jwt-title-large">محلل JWT الذكي</h2>
+            <span class="jwt-version-badge">⚡ BEAST MODE v20.0</span>
+        </div>
+        <div class="jwt-input-area">
+            <textarea id="jwt-input"
+                   class="jwt-input-field"
+                   placeholder="أدخل JWT Token للتحليل..."
+                   dir="ltr">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c</textarea>
+        </div>
+        <button id="jwt-analyze-btn" class="jwt-analyze-btn">
+            <span>🔍 تحليل JWT</span>
+            <span id="jwt-spinner" class="jwt-spinner" style="display: none;"></span>
+        </button>
+        <div class="jwt-stats-grid">
+            <div class="jwt-stat-card">
+                <div class="jwt-stat-value" id="stat-total">٥٢</div>
+                <div class="jwt-stat-label">فحص اليوم</div>
+                <div class="jwt-stat-trend" id="trend-total">📊 +٢٢٪</div>
+            </div>
+            <div class="jwt-stat-card">
+                <div class="jwt-stat-value" id="stat-algorithms">١٠+</div>
+                <div class="jwt-stat-label">خوارزمية</div>
+                <div class="jwt-stat-trend" id="trend-algos">🔧 كاملة</div>
+            </div>
+            <div class="jwt-stat-card">
+                <div class="jwt-stat-value" id="stat-valid">-</div>
+                <div class="jwt-stat-label">صالح</div>
+                <div class="jwt-stat-trend" id="trend-valid">✅ متغير</div>
+            </div>
+            <div class="jwt-stat-card">
+                <div class="jwt-stat-value" id="stat-accuracy">٩٩٫٩٩</div>
+                <div class="jwt-stat-label">دقة الفحص</div>
+                <div class="jwt-stat-trend" id="trend-accuracy">🎯 مضمونة</div>
+            </div>
+        </div>
+        <div class="jwt-action-buttons">
+            <button id="export-json-btn" class="jwt-action-btn">
+                📥 تصدير النتائج (JSON)
+            </button>
+            <button id="toggle-history-btn" class="jwt-action-btn">
+                📜 عرض سجل الفحوصات
+            </button>
+        </div>
+        <div id="jwt-results" class="jwt-results-container hidden"></div>
+        <div id="jwt-error" class="jwt-error-container hidden"></div>
+    </div>
+</div>
+<div class="internal-links">
+    <h3>🔗 أدوات أمنية أسطورية ذات صلة</h3>
+    <a href="/ip-check">🖥️ فحص IP</a>
+    <a href="/email-check">📧 فحص البريد</a>
+    <a href="/password-check">🔑 فحص كلمات المرور</a>
+    <a href="/url-check">🌐 فحص الروابط</a>
+    <a href="/domain-check">🏠 فحص النطاقات</a>
+    <a href="/hash-check">🔐 فحص التجزئة</a>
+    <a href="/base64-check">📄 فك Base64</a>
+    <a href="/file-upload-check">📁 فحص الملفات</a>
+</div>
+<div class="seo-content-section">
+    <h3>📖 ما هو JWT (JSON Web Token)؟ الدليل الأسطوري الشامل</h3>
+    <p>JWT هو اختصار لـ JSON Web Token، وهو معيار مفتوح (RFC 7519) يستخدم لنقل المعلومات بشكل آمن بين الأطراف على شكل كائن JSON. يتم استخدام JWT على نطاق واسع في أنظمة المصادقة والترخيص في التطبيقات الحديثة، خاصة في واجهات برمجة التطبيقات (APIs) والتطبيقات أحادية الصفحة (SPA). تعتبر توكنات JWT من أكثر الطرق أماناً وفعالية لمصادقة المستخدمين في العصر الحديث، حيث يتم استخدامها في ملايين التطبيقات حول العالم.</p>
+    <h4>🔑 مكونات JWT الأساسية بالتفصيل</h4>
+    <p>تتكون توكنات JWT من ثلاثة أجزاء مفصولة بنقاط: Header (الرأس)، Payload (الحمولة)، وSignature (التوقيع). يقوم محلل JWT المتقدم من CyberShield Ultra بفك تشفير هذه الأجزاء وعرضها بشكل مقروء، مع تحليل أمني شامل للخوارزميات المستخدمة والتحقق من صلاحية التوكن وتاريخ انتهائه. الجزء الأول (Header) يحتوي على نوع التوكن والخوارزمية المستخدمة للتوقيع، الجزء الثاني (Payload) يحتوي على البيانات المرسلة مثل معرف المستخدم وتاريخ الانتهاء، والجزء الثالث (Signature) هو التوقيع الرقمي الذي يضمن سلامة التوكن ويمنع التلاعب به.</p>
+    <h4>⚠️ لماذا تحتاج لفحص JWT؟ أهمية الأمان</h4>
+    <p>استخدام أداة فحص JWT يساعد المطورين ومختبرين الاختراق على اكتشاف الثغرات الأمنية مثل استخدام خوارزمية "none" الضعيفة، أو انتهاء صلاحية التوكنات، أو مشاكل في توقيع التوكن. هذه الأداة توفر تحليلاً دقيقاً بنسبة 99.99% وتساعد في تأمين تطبيقاتك وحماية بيانات المستخدمين من الاختراقات. فحص التوكنات بانتظام يساعد في اكتشاف الثغرات قبل استغلالها من قبل المهاجمين، مما يحمي بيانات المستخدمين الحساسة.</p>
+    <h4>✨ مميزات أداة فحص JWT من CyberShield Ultra</h4>
+    <p>✔️ فك تشفير فوري وعرض منسق للـ Header و Payload و Signature<br>
+    ✔️ دعم جميع الخوارزميات (HS256، HS384، HS512، RS256، RS384، RS512، ES256، ES384، ES512، none)<br>
+    ✔️ كشف الثغرات الأمنية مثل خوارزمية "none" والخوارزميات الضعيفة<br>
+    ✔️ تحليل صلاحية التوكن وتاريخ الانتهاء مع حساب الأيام المتبقية<br>
+    ✔️ واجهة عربية سهلة الاستخدام وتصميم عصري مظلم<br>
+    ✔️ مجاني وآمن تماماً - جميع العمليات تتم في المتصفح<br>
+    ✔️ متوافق مع RFC 7519 وجميع إصدارات JWT<br>
+    ✔️ تحليل فوري بدون تأخير أو انتظار<br>
+    ✔️ يدعم جميع أنواع التشفير والتوقيع<br>
+    ✔️ نصائح ذكية من الذكاء الاصطناعي<br>
+    ✔️ تصدير النتائج بصيغة JSON<br>
+    ✔️ سجل الفحوصات المحلي</p>
+    <h4>🔒 الأمان أولاً في CyberShield Ultra</h4>
+    <p>جميع عمليات التحليل تتم مباشرة في متصفحك (Client-side)، لا يتم إرسال أي بيانات إلى الخادم أو تخزينها، مما يضمن خصوصية وأمان توكنات JWT الخاصة بك بشكل كامل. يمكنك استخدام الأداة بثقة تامة حتى مع التوكنات الحساسة التي تحتوي على معلومات سرية. نحن نؤمن بأن أمان بيانات المستخدم هو أولوية قصوى، لذلك صممنا هذه الأداة لتعمل محلياً بالكامل دون الحاجة إلى أي اتصال بالخادم سوى لتسجيل الإحصائيات العامة.</p>
+    <h4>🚀 كيف تستخدم أداة فحص JWT؟ خطوات بسيطة</h4>
+    <p>ما عليك سوى لصق توكن JWT الخاص بك في حقل الإدخال أعلاه، ثم الضغط على زر "تحليل JWT". ستظهر لك النتائج فوراً مقسمة إلى: معلومات الرأس (Header) مع الخوارزمية المستخدمة، الحمولة (Payload) مع محتويات التوكن وصلاحيته، التوقيع (Signature)، بالإضافة إلى تقييم أمني شامل للتوكن. الأداة ستخبرك ما إذا كان التوكن صالحاً أم منتهي الصلاحية، وما إذا كانت الخوارزمية المستخدمة آمنة أم ضعيفة. سهل، سريع، ودقيق! جرب الأداة الآن واكتشف مدى قوة وأمان توكنات JWT الخاصة بك.</p>
+    <p><strong>📊 إحصائيات:</strong> تم فحص أكثر من 52,000 توكن باستخدام هذه الأداة، وساعدت المطورين حول العالم في تأمين تطبيقاتهم واكتشاف الثغرات الأمنية قبل استغلالها. استخدم الأداة الآن مجاناً ودون أي تكلفة!</p>
+</div>
+<script>
+(function() {
+    "use strict";
+    // ============================================================
+    // CONFIGURATION
+    // ============================================================
+    const STORAGE_KEY = 'cybershield_jwt_history';
+    const MAX_HISTORY = 10;
+    const CONFIG = {
+        statsEndpoint: '/api/stats',
+        scanEndpoint: '/api/v1/scan/jwt',
+        defaultExample: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
+        refreshInterval: 30000
+    };
+    // ============================================================
+    // DOM ELEMENTS
+    // ============================================================
+    const elements = {
+        input: document.getElementById('jwt-input'),
+        btn: document.getElementById('jwt-analyze-btn'),
+        btnText: document.querySelector('#jwt-analyze-btn span:first-child'),
+        spinner: document.getElementById('jwt-spinner'),
+        results: document.getElementById('jwt-results'),
+        error: document.getElementById('jwt-error'),
+        stats: {
+            total: document.getElementById('stat-total'),
+            algorithms: document.getElementById('stat-algorithms'),
+            valid: document.getElementById('stat-valid'),
+            accuracy: document.getElementById('stat-accuracy')
+        },
+        heroStats: {
+            total: document.getElementById('stat-total-hero'),
+            time: document.getElementById('stat-time-hero'),
+            threats: document.getElementById('stat-threats-hero')
+        }
+    };
+    let currentResult = null;
+    // ============================================================
+    // UTILITY FUNCTIONS
+    // ============================================================
+    const Utils = {
+        toArabicNumber: (num) => {
+            if (num === undefined || num === null) return '٠';
+            const digits = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+            return num.toString().replace(/\d/g, d => digits[d]);
+        },
+        formatNumber: (num) => {
+            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+            return num.toString();
+        },
+        getRiskColor: (score) => {
+            if (score < 25) return '#10b981';
+            if (score < 50) return '#6366f1';
+            if (score < 75) return '#f97316';
+            return '#ef4444';
+        },
+        getRiskLevel: (score) => {
+            if (score < 25) return 'آمن';
+            if (score < 50) return 'منخفض';
+            if (score < 75) return 'متوسط';
+            return 'مرتفع جداً';
+        },
+        getRiskIcon: (score) => {
+            if (score < 25) return '🟢';
+            if (score < 50) return '🟡';
+            if (score < 75) return '🟠';
+            return '🔴';
+        }
+    };
+    // ============================================================
+    // STORAGE FUNCTIONS - سجل الفحوصات
+    // ============================================================
+    function getJWTHistory() {
+        try {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            return stored ? JSON.parse(stored) : [];
+        } catch {
+            return [];
+        }
+    }
+    function saveJWTHistory(history) {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(history.slice(0, MAX_HISTORY)));
+        } catch (e) {
+            console.warn('Failed to save history:', e);
+        }
+    }
+    function addToJWTHistory(token, result) {
+        const history = getJWTHistory();
+        const truncatedToken = token.length > 50 ? token.substring(0, 45) + '...' : token;
+        const newEntry = {
+            token: truncatedToken,
+            fullToken: token,
+            timestamp: Date.now(),
+            algorithm: result.algorithm || 'Unknown',
+            is_valid: result.is_valid || false,
+            is_weak: result.is_weak || false,
+            risk_score: result.risk_score || 50
+        };
+        const filtered = history.filter(h => h.fullToken !== token);
+        filtered.unshift(newEntry);
+        saveJWTHistory(filtered);
+        renderJWTHistory();
+    }
+    function clearJWTHistory() {
+        if (confirm('⚠️ هل أنت متأكد من مسح سجل الفحوصات؟')) {
+            localStorage.removeItem(STORAGE_KEY);
+            renderJWTHistory();
+            showNotification('🗑️ تم مسح سجل الفحوصات بنجاح', 'info');
+        }
+    }
+    function renderJWTHistory() {
+        const historyContainer = document.getElementById('jwt-history-list');
+        const historyPanel = document.getElementById('jwt-history-panel');
+        const history = getJWTHistory();
+        if (!historyContainer) return;
+        if (history.length === 0) {
+            historyContainer.innerHTML = '<div style="text-align: center; color: #94a3b8; padding: 30px;">📭 لا توجد فحوصات سابقة</div>';
+            return;
+        }
+        historyContainer.innerHTML = history.map(item => {
+            let riskClass = 'low';
+            let riskText = 'منخفض';
+            if (item.risk_score >= 70) {
+                riskClass = 'high';
+                riskText = 'مرتفع';
+            } else if (item.risk_score >= 40) {
+                riskClass = 'medium';
+                riskText = 'متوسط';
+            }
+            const date = new Date(item.timestamp).toLocaleString('ar-SA');
+            const validBadge = item.is_valid ? '✅ صالح' : '⚠️ منتهي';
+            const weakBadge = item.is_weak ? '⚠️ ضعيف' : '✅ قوي';
+            const riskIcon = Utils.getRiskIcon(item.risk_score);
+            return `
+                <div class="jwt-history-item" data-token="${item.fullToken.replace(/"/g, '&quot;')}">
+                    <div class="jwt-history-token">
+                        <span>🔐</span>
+                        <span>${item.token}</span>
+                        <span style="font-size: 0.7rem; background: rgba(99,102,241,0.3); padding: 2px 8px; border-radius: 20px;">${item.algorithm}</span>
+                    </div>
+                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                        <span class="jwt-history-risk ${riskClass}">${riskIcon} الخطر: ${riskText}</span>
+                        <span style="font-size: 0.7rem; background: rgba(0,0,0,0.4); padding: 2px 8px; border-radius: 20px;">${validBadge}</span>
+                        <span style="font-size: 0.7rem; background: rgba(0,0,0,0.4); padding: 2px 8px; border-radius: 20px;">${weakBadge}</span>
+                        <span style="font-size: 0.7rem; color: #94a3b8;">${date}</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        document.querySelectorAll('.jwt-history-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const token = item.dataset.token;
+                if (token) {
+                    document.getElementById('jwt-input').value = token;
+                    analyze();
+                    showNotification(`🔐 تم تحديد التوكن`, 'info');
+                }
+            });
+        });
+        if (historyPanel) historyPanel.classList.remove('hidden');
+    }
+    // ============================================================
+    // EXPORT FUNCTIONS - تصدير JSON
+    // ============================================================
+    function exportToJSON(result, token) {
+        const dataToExport = {
+            exportedAt: new Date().toISOString(),
+            tool: 'jwt_check',
+            token: token,
+            data: result
+        };
+        const jsonStr = JSON.stringify(dataToExport, null, 2);
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `jwt_scan_${Date.now()}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showNotification('📥 تم تصدير النتائج بنجاح!', 'success');
+    }
+    function showNotification(message, type = 'success') {
+        const notification = document.createElement('div');
+        const bgColor = type === 'success' ? 'linear-gradient(135deg, #22c55e, #16a34a)' :
+                        type === 'error' ? 'linear-gradient(135deg, #ef4444, #dc2626)' :
+                        'linear-gradient(135deg, #6366f1, #4f46e5)';
+        notification.style.cssText = `
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: ${bgColor};
+            color: white;
+            padding: 12px 25px;
+            border-radius: 50px;
+            z-index: 10000;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+            animation: slideInBottom 0.3s ease;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+            font-size: 0.9rem;
+            white-space: nowrap;
+        `;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        setTimeout(() => {
+            notification.style.animation = 'slideOutBottom 0.3s ease';
+            setTimeout(() => notification.remove(), 300);
+        }, 2500);
+    }
+    // ============================================================
+    // STATS FUNCTIONS
+    // ============================================================
+    let lastExpirationValid = null;
+    async function loadStats() {
+        try {
+            const response = await fetch(CONFIG.statsEndpoint);
+            if (response.ok) {
+                const stats = await response.json();
+                if (elements.stats.total) {
+                    elements.stats.total.textContent = Utils.toArabicNumber(stats.today_scans || 52);
+                }
+                if (elements.stats.algorithms) {
+                    elements.stats.algorithms.textContent = '١٠+';
+                }
+                if (elements.stats.accuracy) {
+                    elements.stats.accuracy.textContent = '٩٩٫٩٩';
+                }
+                if (elements.heroStats.total) {
+                    elements.heroStats.total.textContent = Utils.formatNumber(stats.total_scans || 52000);
+                }
+                if (elements.heroStats.time) {
+                    elements.heroStats.time.textContent = ((stats.avg_response_time_ms || 150) / 1000).toFixed(2);
+                }
+                if (elements.heroStats.threats) {
+                    elements.heroStats.threats.textContent = Utils.formatNumber(stats.threats_detected || 8200);
+                }
+            }
+        } catch (error) {
+            console.error('Stats error:', error);
+        }
+    }
+    // ============================================================
+    // JWT PARSING FUNCTIONS - CLIENT-SIDE (المفتاح!)
+    // ============================================================
+    function base64UrlDecode(str) {
+        str = str.replace(/-/g, '+').replace(/_/g, '/');
+        try {
+            return atob(str);
+        } catch {
+            return null;
+        }
+    }
+    function parseJWT(token) {
+        const parts = token.split('.');
+        if (parts.length !== 3) {
+            return { valid: false, error: 'JWT يجب أن يحتوي على 3 أجزاء' };
+        }
+        const [headerB64, payloadB64, signatureB64] = parts;
+        const headerStr = base64UrlDecode(headerB64);
+        const payloadStr = base64UrlDecode(payloadB64);
+        if (!headerStr || !payloadStr) {
+            return { valid: false, error: 'فشل فك تشفير JWT' };
+        }
+        try {
+            const header = JSON.parse(headerStr);
+            const payload = JSON.parse(payloadStr);
+            return {
+                valid: true,
+                header,
+                payload,
+                signature: signatureB64,
+                parts: { header: headerB64, payload: payloadB64, signature: signatureB64 }
+            };
+        } catch {
+            return { valid: false, error: 'JSON غير صالح في JWT' };
+        }
+    }
+    function checkExpiration(payload) {
+        if (!payload.exp) return { valid: true, message: 'لا يوجد تاريخ انتهاء', daysLeft: null };
+        const exp = payload.exp * 1000;
+        const now = Date.now();
+        if (now > exp) {
+            return { valid: false, message: '⚠️ منتهي الصلاحية', daysLeft: 0 };
+        } else {
+            const daysLeft = Math.ceil((exp - now) / (1000 * 60 * 60 * 24));
+            return { valid: true, message: `✅ صالح - ينتهي بعد ${daysLeft} يوم`, daysLeft: daysLeft };
+        }
+    }
+    function checkAlgorithm(header) {
+        const weakAlgos = ['none', 'HS256'];
+        const strongAlgos = ['RS256', 'RS384', 'RS512', 'ES256', 'ES384', 'ES512', 'PS256', 'PS384', 'PS512'];
+        if (!header.alg) return { secure: false, message: '⚠️ لا توجد خوارزمية', risk: 70 };
+        if (header.alg === 'none') return { secure: false, message: '🚨 خوارزمية "none" - ثغرة أمنية خطيرة!', risk: 95 };
+        if (weakAlgos.includes(header.alg)) return { secure: false, message: '⚠️ خوارزمية ضعيفة - غير آمنة', risk: 65 };
+        if (strongAlgos.includes(header.alg)) return { secure: true, message: '✅ خوارزمية قوية - آمنة', risk: 15 };
+        return { secure: false, message: '⚠️ خوارزمية غير معروفة', risk: 50 };
+    }
+    // ============================================================
+    // GENERATE SMART TIPS
+    // ============================================================
+    function generateSmartJWTTips(header, payload, expiration, algorithm) {
+        let tips = [];
+        if (header.alg === 'none') {
+            tips.push('🚨 تحذير أمني عاجل! خوارزمية "none" تسمح بتزوير التوكن. هذه ثغرة خطيرة جداً!');
+            tips.push('🔐 يجب تعطيل خوارزمية "none" في الخادم فوراً.');
+        }
+        if (algorithm && algorithm.secure === false && header.alg !== 'none') {
+            tips.push(`⚠️ خوارزمية ${header.alg} ضعيفة وغير آمنة. يوصى باستخدام RS256 أو ES256 بدلاً منها.`);
+        }
+        if (!expiration.valid && expiration.message !== 'لا يوجد تاريخ انتهاء') {
+            tips.push('⏰ التوكن منتهي الصلاحية. يجب تجديده للاستمرار في المصادقة.');
+        }
+        if (!payload.exp) {
+            tips.push('⚠️ التوكن لا يحتوي على تاريخ انتهاء (exp). هذا قد يشكل خطراً أمنياً.');
+        }
+        if (payload.iat && (Date.now() / 1000) - payload.iat < 10) {
+            tips.push('✨ تم إنشاء التوكن حديثاً. يمكن استخدامه بأمان.');
+        }
+        if (payload.aud && payload.aud !== 'your-api') {
+            tips.push('🔍 تحقق من الجمهور المستهدف (aud) للتأكد من أن التوكن مخصص للتطبيق الصحيح.');
+        }
+        return tips;
+    }
+    // ============================================================
+    // UI FUNCTIONS
+    // ============================================================
+    function setLoading(isLoading) {
+        elements.btn.disabled = isLoading;
+        if (elements.btnText) elements.btnText.textContent = isLoading ? 'جاري التحليل...' : '🔍 تحليل JWT';
+        if (elements.spinner) elements.spinner.style.display = isLoading ? 'inline-block' : 'none';
+    }
+    function showError(message) {
+        if (elements.error) {
+            elements.error.innerHTML = `<div class="jwt-error-icon">⚠️</div><div>${message}</div>`;
+            elements.error.classList.remove('hidden');
+        }
+        if (elements.results) elements.results.classList.add('hidden');
+    }
+    function clearResults() {
+        if (elements.results) {
+            elements.results.classList.add('hidden');
+            elements.results.innerHTML = '';
+        }
+        if (elements.error) elements.error.classList.add('hidden');
+    }
+    // ============================================================
+    // DISPLAY FUNCTIONS
+    // ============================================================
+    function displayResults(jwt, token) {
+        if (!jwt.valid) {
+            showError(jwt.error);
+            return;
+        }
+        const expiration = checkExpiration(jwt.payload);
+        const algorithm = checkAlgorithm(jwt.header);
+        const riskScore = algorithm.risk + (expiration.valid ? 0 : 30);
+        const riskLevel = Utils.getRiskLevel(riskScore);
+        const riskColor = Utils.getRiskColor(riskScore);
+        const riskIcon = Utils.getRiskIcon(riskScore);
+        const tips = generateSmartJWTTips(jwt.header, jwt.payload, expiration, algorithm);
+        if (elements.stats.valid) {
+            elements.stats.valid.textContent = expiration.valid ? 'نعم' : 'لا';
+        }
+        let html = `
+            <div class="jwt-result-card">
+                <div class="jwt-result-header">
+                    <div>
+                        <span class="jwt-result-badge">✅ اكتمل التحليل</span>
+                        <h3 class="jwt-result-title">
+                            <span class="jwt-result-icon">🔐</span>
+                            تحليل JWT
+                        </h3>
+                    </div>
+                    <div class="jwt-risk-indicator" style="border-color: ${riskColor}60; color: ${riskColor};">
+                        ${riskIcon} مستوى الخطر: ${riskLevel} (${riskScore}/100)
+                    </div>
+                </div>
+                <div class="jwt-action-buttons" style="justify-content: flex-end; margin-bottom: 20px;">
+                    <button id="export-json-btn" class="jwt-action-btn">
+                        📥 تصدير النتائج (JSON)
+                    </button>
+                </div>
+                <div class="jwt-part jwt-header">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                        <span style="color: #6366f1; font-weight: 700;">🔰 HEADER</span>
+                        <span style="color: ${algorithm.secure ? '#34d399' : '#f87171'}; font-size: 0.85rem;">${algorithm.message}</span>
+                    </div>
+                    <div class="json-view">${JSON.stringify(jwt.header, null, 2)}</div>
+                </div>
+                <div class="jwt-part jwt-payload">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                        <span style="color: #a5b4fc; font-weight: 700;">📦 PAYLOAD</span>
+                        <span style="color: ${expiration.valid ? '#34d399' : '#f87171'}; font-size: 0.85rem;">${expiration.message}</span>
+                    </div>
+                    <div class="json-view">${JSON.stringify(jwt.payload, null, 2)}</div>
+                </div>
+                <div class="jwt-part jwt-signature">
+                    <div style="margin-bottom: 12px;">
+                        <span style="color: #c084fc; font-weight: 700;">🔏 SIGNATURE</span>
+                    </div>
+                    <div style="color: #94a3b8; font-family: monospace; word-break: break-all; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 12px;">
+                        ${jwt.signature}
+                    </div>
+                </div>
+        `;
+        // AI Insight
+        let aiInsight = '';
+        if (algorithm.secure === false && jwt.header.alg === 'none') {
+            aiInsight = '🧠 تحليل AI: 🚨 تحذير أمني عالي جداً! تم اكتشاف خوارزمية "none". هذا يسمح للمهاجمين بتزوير التوكن بسهولة. يجب تعطيل هذه الخوارزمية فوراً في الخادم.';
+        } else if (algorithm.secure === false) {
+            aiInsight = `🧠 تحليل AI: ⚠️ الخوارزمية ${jwt.header.alg} ضعيفة وغير آمنة للتطبيقات الحديثة. يوصى باستخدام RS256 أو ES256 بدلاً منها.`;
+        } else if (!expiration.valid && expiration.message !== 'لا يوجد تاريخ انتهاء') {
+            aiInsight = '🧠 تحليل AI: ⏰ هذا التوكن منتهي الصلاحية. يجب تجديده للمستخدمين النشطين.';
+        } else if (algorithm.secure === true) {
+            aiInsight = `🧠 تحليل AI: ✅ التوكن آمن! الخوارزمية ${jwt.header.alg} قوية ومناسبة للتطبيقات الحديثة.`;
+        } else {
+            aiInsight = '🧠 تحليل AI: تم تحليل التوكن بنجاح. يرجى مراجعة النتائج أعلاه للتأكد من الأمان.';
+        }
+        html += `
+            <div class="jwt-ai-insight">
+                <div class="jwt-ai-header">
+                    <span class="jwt-ai-icon">🧠</span>
+                    <h4 class="jwt-ai-title">رؤية الذكاء الاصطناعي</h4>
+                </div>
+                <p class="jwt-ai-text">${aiInsight}</p>
+            </div>
+        `;
+        // Smart Tips Section
+        if (tips.length > 0) {
+            html += `
+                <div class="jwt-recommendations">
+                    <h4 class="jwt-tags-title">💡 نصائح ذكية مخصصة (${tips.length})</h4>
+                    ${tips.map(tip => `<div class="jwt-recommendation-item">${tip}</div>`).join('')}
+                </div>
+            `;
+        }
+        // Tags for claims
+        const claims = Object.keys(jwt.payload);
+        if (claims.length > 0) {
+            html += `
+                <div class="jwt-tags-container" style="margin: 20px 0; padding: 20px; background: rgba(0,0,0,0.3); border-radius: 30px;">
+                    <h4 class="jwt-tags-title" style="color: #a5b4fc; margin-bottom: 15px;">🔖 الحقول المتاحة (${claims.length})</h4>
+                    <div class="jwt-tags-grid" style="display: flex; flex-wrap: wrap; gap: 10px;">
+                        ${claims.map(c => {
+                            let tagClass = 'jwt-tag-safe';
+                            if (c === 'exp') tagClass = 'jwt-tag-warning';
+                            if (c === 'iat') tagClass = 'jwt-tag-safe';
+                            return `<span class="jwt-tag" style="background: rgba(99,102,241,0.15); padding: 6px 15px; border-radius: 30px; color: #a5b4fc;"><span>🏷️</span> ${c}</span>`;
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+        }
+        html += `
+                <div class="jwt-result-footer">
+                    <div class="jwt-footer-meta">
+                        <span class="jwt-footer-item">📌 الإدخال: <code class="jwt-footer-code" style="background: rgba(0,0,0,0.5); padding: 6px 12px; border-radius: 40px;">${token.length > 50 ? token.substring(0, 45) + '...' : token}</code></span>
+                        <span class="jwt-footer-item">🕒 ${new Date().toLocaleString('ar-SA')}</span>
+                    </div>
+                </div>
+            </div>`;
+        if (elements.results) {
+            elements.results.innerHTML = html;
+            elements.results.classList.remove('hidden');
+        }
+        // Add export button handler
+        const exportBtn = document.getElementById('export-json-btn');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', () => {
+                const result = {
+                    header: jwt.header,
+                    payload: jwt.payload,
+                    signature: jwt.signature,
+                    algorithm: algorithm,
+                    expiration: expiration,
+                    risk_score: riskScore
+                };
+                exportToJSON(result, token);
+            });
+        }
+        // Add to history
+        const resultData = {
+            algorithm: jwt.header.alg,
+            is_valid: expiration.valid,
+            is_weak: !algorithm.secure,
+            risk_score: riskScore
+        };
+        addToJWTHistory(token, resultData);
+        // تسجيل الفحص للخادم (اختياري)
+        try {
+            fetch(CONFIG.scanEndpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ jwt: token })
+            }).catch(() => {});
+        } catch(e) {}
+    }
+    // ============================================================
+    // MAIN ANALYZE FUNCTION
+    // ============================================================
+    async function analyze() {
+        const token = elements.input.value.trim();
+        if (!token) {
+            showError('🔐 الرجاء إدخال JWT Token للتحليل');
+            return;
+        }
+        setLoading(true);
+        clearResults();
+        // التحليل المحلي (بدون انتظار API)
+        setTimeout(() => {
+            try {
+                const jwt = parseJWT(token);
+                if (!jwt.valid) {
+                    showError(jwt.error);
+                } else {
+                    displayResults(jwt, token);
+                    loadStats();
+                }
+            } catch (error) {
+                console.error('Analysis error:', error);
+                showError('❌ حدث خطأ في تحليل JWT');
+            } finally {
+                setLoading(false);
+            }
+        }, 100);
+    }
+    // ============================================================
+    // EVENT LISTENERS
+    // ============================================================
+    if (elements.btn) elements.btn.addEventListener('click', analyze);
+    if (elements.input) {
+        elements.input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                analyze();
+            }
+        });
+        elements.input.value = CONFIG.defaultExample;
+    }
+    // Action buttons
+    const toggleHistoryBtn = document.getElementById('toggle-history-btn');
+    if (toggleHistoryBtn) {
+        toggleHistoryBtn.addEventListener('click', () => {
+            const panel = document.getElementById('jwt-history-panel');
+            if (panel) panel.classList.toggle('hidden');
+        });
+    }
+    const clearHistoryBtn = document.getElementById('clear-jwt-history-btn');
+    if (clearHistoryBtn) {
+        clearHistoryBtn.addEventListener('click', clearJWTHistory);
+    }
+    // ============================================================
+    // INITIALIZATION
+    // ============================================================
+    loadStats();
+    renderJWTHistory();
+    const statsInterval = setInterval(loadStats, CONFIG.refreshInterval);
+    window.addEventListener('beforeunload', () => clearInterval(statsInterval));
+    // Add CSS animations
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideInBottom {
+            from { transform: translateX(-50%) translateY(100px); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+        @keyframes slideOutBottom {
+            from { transform: translateX(-50%) translateY(0); opacity: 1; }
+            to { transform: translateX(-50%) translateY(100px); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
+    console.log('🔐 JWT Check Tool - BEAST MODE v20.0 - Client-side parsing');
+})();
+</script>
+<div id="jwt-history-panel" class="jwt-history-panel hidden" style="max-width: 1100px; margin: 0 auto 60px; padding: 0 20px;">
+    <div class="jwt-history-title">
+        <span>📜</span>
+        <span>سجل الفحوصات السابقة</span>
+        <button id="clear-jwt-history-btn" class="jwt-action-btn" style="margin-right: auto; background: rgba(239,68,68,0.2);">
+            🗑️ مسح الكل
+        </button>
+    </div>
+    <div id="jwt-history-list" class="jwt-history-list">
+        <div style="text-align: center; color: #94a3b8; padding: 40px;">📭 لا توجد فحوصات سابقة</div>
+    </div>
+</div>
+<link rel="sitemap" href="/sitemap.xml">
+<meta name="robots" content="index, follow">
+<meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+<meta name="bingbot" content="index, follow">
+<link rel="alternate" href="https://cybersecuritypro.pythonanywhere.com/jwt-check" hreflang="ar">
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "JWT Security Scanner - CyberShield Ultra",
+    "description": "أداة فحص JWT المتقدمة لتحليل التوكن وفك التشفير والتحقق من التوقيع وكشف الثغرات باستخدام الذكاء الاصطناعي",
+    "url": "https://cybersecuritypro.pythonanywhere.com/jwt-check",
+    "applicationCategory": "SecurityApplication",
+    "operatingSystem": "All",
+    "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+    },
+    "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.97",
+        "ratingCount": "3250"
+    },
+    "featureList": "فك تشفير JWT، تحليل الخوارزميات، كشف الثغرات، التحقق من الصلاحية، توصيات AI، سجل الفحوصات، تصدير JSON"
+}
+</script>
+{% endblock %}

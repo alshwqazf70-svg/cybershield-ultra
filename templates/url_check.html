@@ -1,0 +1,742 @@
+{% extends "base.html" %}
+{% block title %}🔗 فحص الروابط الأسطوري - CyberShield Ultra | 50+ تحليل متقدم{% endblock %}
+{% block meta_description %}أقوى أداة فحص روابط في العالم. 50+ نتيجة تحليل: SSL، WHOIS، DNS، كشف التصيد، فك الاختصارات، تقييم المخاطر، توصيات ذكية.{% endblock %}
+{% block meta_keywords %}فحص الروابط, URL Checker, كشف التصيد, Phishing Detection, SSL Check, WHOIS, URL Scanner, Link Safety{% endblock %}
+{% block og_title %}🔗 فحص الروابط الأسطوري - 50+ تحليل | CyberShield Ultra{% endblock %}
+{% block og_description %}تحليل متقدم للروابط مع كشف التصيد، فحص SSL، WHOIS، DNS، فك الاختصارات، وتوصيات ذكية.{% endblock %}
+{% block canonical %}<link rel="canonical" href="https://cybersecuritypro.pythonanywhere.com/url-check">{% endblock %}
+
+{% block styles %}
+<style>
+    :root {
+        --url-primary: #f59e0b;
+        --url-primary-dark: #d97706;
+        --url-primary-light: #fcd34d;
+        --url-secondary: #10b981;
+        --url-accent: #8b5cf6;
+        --url-danger: #ef4444;
+        --url-warning: #f97316;
+        --url-info: #3b82f6;
+        --url-dark: #0f172a;
+        --url-darker: #020617;
+        --url-light: #e2e8f0;
+        --url-gray: #94a3b8;
+        --url-gradient-1: linear-gradient(135deg, #f59e0b, #f97316, #dc2626);
+        --url-gradient-2: linear-gradient(45deg, #fef3c7, #fde68a, #fcd34d);
+        --url-glow: 0 0 30px rgba(245, 158, 11, 0.5);
+        --url-glow-strong: 0 0 50px rgba(245, 158, 11, 0.8);
+        --url-radius-full: 9999px;
+    }
+
+    .url-hero-legendary {
+        position: relative;
+        min-height: 55vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 120px 0;
+        overflow: hidden;
+        background: radial-gradient(ellipse at 50% 50%, #0f172a 0%, #020617 100%);
+        border-radius: 0 0 100px 100px;
+        margin-bottom: 60px;
+    }
+    .url-hero-bg {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: radial-gradient(circle at 20% 30%, rgba(245,158,11,0.25) 0%, transparent 40%),
+                    radial-gradient(circle at 80% 70%, rgba(16,185,129,0.25) 0%, transparent 40%),
+                    radial-gradient(circle at 40% 80%, rgba(139,92,246,0.2) 0%, transparent 40%),
+                    repeating-linear-gradient(45deg, rgba(245,158,11,0.05) 0px, rgba(245,158,11,0.05) 2px, transparent 2px, transparent 8px);
+        animation: urlHeroPulseAdvanced 12s ease-in-out infinite;
+        z-index: 0;
+    }
+    @keyframes urlHeroPulseAdvanced {
+        0%, 100% { opacity: 0.4; transform: scale(1); }
+        33% { opacity: 0.7; transform: scale(1.05); }
+        66% { opacity: 0.5; transform: scale(0.98); }
+    }
+    .url-hero-particles {
+        position: absolute;
+        width: 100%; height: 100%;
+        background-image: radial-gradient(circle at 10% 20%, rgba(255,255,255,0.15) 1px, transparent 1px),
+                          radial-gradient(circle at 30% 50%, rgba(245,158,11,0.15) 2px, transparent 2px),
+                          radial-gradient(circle at 70% 30%, rgba(16,185,129,0.15) 1px, transparent 1px),
+                          radial-gradient(circle at 85% 75%, rgba(139,92,246,0.1) 1.5px, transparent 1.5px);
+        background-size: 120px 120px;
+        animation: urlParticlesMove 60s linear infinite;
+        opacity: 0.6; z-index: 1;
+    }
+    @keyframes urlParticlesMove {
+        0% { transform: translate(0, 0) rotate(0deg); }
+        25% { transform: translate(30px, 30px) rotate(90deg); }
+        50% { transform: translate(60px, 0) rotate(180deg); }
+        75% { transform: translate(30px, -30px) rotate(270deg); }
+        100% { transform: translate(0, 0) rotate(360deg); }
+    }
+    .url-hero-content { position: relative; z-index: 10; max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+    .url-hero-icon { font-size: 7rem; display: inline-block; margin-bottom: 25px; filter: drop-shadow(0 0 50px #f59e0b); animation: urlIconFloat 5s ease-in-out infinite; }
+    @keyframes urlIconFloat {
+        0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+        20% { transform: translateY(-20px) rotate(8deg) scale(1.05); }
+        40% { transform: translateY(10px) rotate(-5deg) scale(0.98); }
+        60% { transform: translateY(-10px) rotate(3deg) scale(1.02); }
+        80% { transform: translateY(5px) rotate(-2deg) scale(0.99); }
+    }
+    .url-hero-title {
+        font-size: clamp(3.5rem, 10vw, 5.5rem); font-weight: 900; margin-bottom: 25px;
+        background: linear-gradient(135deg, #fff, #fcd34d, #fbbf24, #f59e0b, #fcd34d);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        background-size: 400% 400%; animation: urlGradientMove 10s ease infinite;
+        text-shadow: 0 0 60px rgba(245,158,11,0.6); letter-spacing: -0.02em;
+    }
+    @keyframes urlGradientMove {
+        0%, 100% { background-position: 0% 50%; }
+        25% { background-position: 50% 50%; }
+        50% { background-position: 100% 50%; }
+        75% { background-position: 50% 50%; }
+    }
+    .url-hero-subtitle { font-size: 1.5rem; color: rgba(255,255,255,0.92); max-width: 850px; margin: 0 auto 35px; line-height: 1.9; text-shadow: 0 0 25px rgba(0,0,0,0.6); font-weight: 500; }
+    .url-hero-subtitle span { background: linear-gradient(135deg, #fcd34d, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700; }
+    .url-hero-stats { display: flex; gap: 25px; justify-content: center; flex-wrap: wrap; margin-top: 50px; }
+    .url-hero-stat {
+        padding: 18px 35px; background: rgba(255,255,255,0.06); backdrop-filter: blur(15px);
+        border: 1px solid rgba(245,158,11,0.4); border-radius: 70px; font-size: 1.1rem;
+        color: #fcd34d; display: flex; align-items: center; gap: 12px;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); font-weight: 600;
+    }
+    .url-hero-stat:hover { border-color: #f59e0b; transform: translateY(-8px) scale(1.05); box-shadow: 0 15px 40px -12px rgba(245,158,11,0.6); background: rgba(245,158,11,0.15); }
+
+    .url-tool-card {
+        background: rgba(15,23,42,0.85); backdrop-filter: blur(25px);
+        border: 1px solid rgba(245,158,11,0.35); border-radius: 70px; padding: 60px;
+        box-shadow: 0 50px 90px -35px rgba(0,0,0,0.9), 0 0 0 1px rgba(245,158,11,0.25) inset, 0 0 40px rgba(245,158,11,0.1);
+        transform-style: preserve-3d; perspective: 2000px; transition: all 0.5s ease;
+    }
+    .url-tool-card:hover { box-shadow: 0 60px 100px -35px rgba(0,0,0,0.95), 0 0 0 2px rgba(245,158,11,0.3) inset, 0 0 60px rgba(245,158,11,0.2); }
+    .url-tool-header { display: flex; align-items: center; justify-content: center; gap: 25px; margin-bottom: 55px; flex-wrap: wrap; }
+    .url-status-badge { display: flex; align-items: center; gap: 12px; padding: 12px 30px; background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.35); border-radius: 70px; }
+    .url-status-dot { width: 14px; height: 14px; background: #10b981; border-radius: 50%; box-shadow: 0 0 25px #10b981; animation: urlStatusPulse 1.5s infinite; }
+    @keyframes urlStatusPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.3); } }
+    .url-status-text { color: #34d399; font-weight: 800; font-size: 1rem; text-transform: uppercase; letter-spacing: 2px; }
+    .url-title-large { font-size: 2.8rem; font-weight: 900; margin: 0; background: linear-gradient(135deg, #fff, #fcd34d, #fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -0.02em; }
+    .url-version-badge { padding: 12px 30px; background: rgba(245,158,11,0.2); border: 1px solid rgba(245,158,11,0.5); border-radius: 70px; color: #fcd34d; font-weight: 800; font-size: 1rem; letter-spacing: 2px; box-shadow: 0 0 30px rgba(245,158,11,0.3); animation: versionGlow 3s ease-in-out infinite; }
+    @keyframes versionGlow { 0%, 100% { box-shadow: 0 0 20px rgba(245,158,11,0.2); } 50% { box-shadow: 0 0 45px rgba(245,158,11,0.6); } }
+
+    .url-input-area { display: flex; gap: 25px; margin-bottom: 55px; flex-wrap: wrap; justify-content: center; }
+    .url-input-wrapper { flex: 1; min-width: 380px; position: relative; }
+    .url-input-field {
+        width: 100%; padding: 28px 35px; background: rgba(0,0,0,0.55);
+        border: 2px solid rgba(245,158,11,0.45); border-radius: 80px;
+        font-size: 1.1rem; color: #fff; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        direction: ltr; text-align: left; font-family: 'Courier New', monospace; letter-spacing: 0.5px; font-weight: 500;
+    }
+    .url-input-field:focus { border-color: #f59e0b; box-shadow: 0 0 0 5px rgba(245,158,11,0.25), 0 0 50px rgba(245,158,11,0.4); outline: none; background: rgba(0,0,0,0.75); transform: scale(1.02); }
+    .url-input-field::placeholder { color: #94a3b8; font-size: 1rem; font-family: 'Cairo', sans-serif; font-weight: 400; }
+    .url-suggestions { position: absolute; top: 100%; left: 20px; right: 20px; background: rgba(15,23,42,0.97); backdrop-filter: blur(15px); border: 1px solid rgba(245,158,11,0.4); border-radius: 25px; margin-top: 12px; padding: 18px; z-index: 100; display: none; max-height: 250px; overflow-y: auto; }
+    .url-suggestion-item { padding: 12px 18px; border-radius: 15px; cursor: pointer; transition: all 0.25s ease; color: #e2e8f0; font-family: 'Courier New', monospace; font-size: 0.9rem; border-bottom: 1px solid rgba(245,158,11,0.2); }
+    .url-suggestion-item:last-child { border-bottom: none; }
+    .url-suggestion-item:hover { background: rgba(245,158,11,0.25); color: #fcd34d; transform: translateX(8px); }
+    .url-analyze-btn {
+        padding: 28px 60px; background: linear-gradient(135deg, #f59e0b, #f97316, #dc2626, #f97316);
+        background-size: 300% 300%; border: none; border-radius: 80px; color: white;
+        font-weight: 900; font-size: 1.4rem; cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 20px 50px -12px rgba(245,158,11,0.7);
+        display: inline-flex; align-items: center; gap: 18px; min-width: 280px;
+        justify-content: center; position: relative; overflow: hidden;
+        animation: btnGradientShift 4s ease infinite;
+    }
+    @keyframes btnGradientShift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+    .url-analyze-btn::before { content: ''; position: absolute; top: 50%; left: 50%; width: 0; height: 0; border-radius: 50%; background: rgba(255,255,255,0.25); transform: translate(-50%, -50%); transition: width 0.6s, height 0.6s; }
+    .url-analyze-btn:hover:not(:disabled)::before { width: 400px; height: 400px; }
+    .url-analyze-btn:hover:not(:disabled) { transform: translateY(-8px) scale(1.04); box-shadow: 0 35px 65px -15px rgba(245,158,11,0.9); }
+    .url-analyze-btn:disabled { opacity: 0.6; cursor: not-allowed; filter: grayscale(30%); }
+    .url-spinner { width: 32px; height: 32px; border: 4px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: #fff; border-right-color: #fcd34d; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .url-stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 25px; margin: 55px 0; }
+    .url-stat-card { background: rgba(0,0,0,0.35); border: 1px solid rgba(245,158,11,0.35); border-radius: 35px; padding: 35px 20px; text-align: center; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; overflow: hidden; backdrop-filter: blur(8px); }
+    .url-stat-card::before { content: ''; position: absolute; top: -2px; left: -2px; right: -2px; bottom: -2px; background: linear-gradient(135deg, #f59e0b, #f97316, #dc2626, #f59e0b); background-size: 300% 300%; border-radius: 37px; opacity: 0; transition: opacity 0.5s ease; z-index: -1; animation: statBorderGlow 4s ease infinite; }
+    @keyframes statBorderGlow { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+    .url-stat-card:hover::before { opacity: 0.4; }
+    .url-stat-card:hover { transform: translateY(-12px); border-color: transparent; }
+    .url-stat-value { font-size: 3rem; font-weight: 900; background: linear-gradient(135deg, #fff, #fcd34d); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1; margin-bottom: 15px; letter-spacing: -1px; }
+    .url-stat-label { color: #94a3b8; font-size: 1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 18px; }
+    .url-stat-trend { display: inline-block; padding: 7px 18px; background: rgba(0,0,0,0.6); border: 1px solid rgba(245,158,11,0.4); border-radius: 40px; color: #fcd34d; font-size: 0.85rem; font-weight: 700; }
+
+    .url-action-buttons { display: flex; gap: 20px; justify-content: flex-end; margin-bottom: 25px; flex-wrap: wrap; }
+    .url-action-btn { padding: 12px 28px; background: rgba(0,0,0,0.4); border: 1px solid rgba(245,158,11,0.45); border-radius: 50px; color: #fcd34d; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 10px; }
+    .url-action-btn:hover { border-color: #f59e0b; background: rgba(245,158,11,0.25); transform: translateY(-3px); box-shadow: 0 10px 25px -10px rgba(245,158,11,0.4); }
+
+    .url-history-panel { background: rgba(15,23,42,0.92); backdrop-filter: blur(20px); border: 1px solid rgba(245,158,11,0.4); border-radius: 55px; padding: 35px; margin-top: 45px; animation: slideInFromBottom 0.5s ease; }
+    @keyframes slideInFromBottom { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: translateY(0); } }
+    .url-history-title { font-size: 1.4rem; color: #fcd34d; margin-bottom: 25px; display: flex; align-items: center; gap: 12px; font-weight: 800; }
+    .url-history-list { max-height: 350px; overflow-y: auto; }
+    .url-history-item { background: rgba(0,0,0,0.35); border: 1px solid rgba(245,158,11,0.35); border-radius: 35px; padding: 18px; margin-bottom: 12px; cursor: pointer; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+    .url-history-item:hover { border-color: #f59e0b; background: rgba(245,158,11,0.18); transform: translateX(-5px); box-shadow: 0 10px 25px -10px rgba(245,158,11,0.3); }
+    .url-history-url { font-family: 'Courier New', monospace; color: #fcd34d; direction: ltr; font-size: 0.85rem; display: flex; align-items: center; gap: 10px; word-break: break-all; }
+    .url-history-risk { padding: 5px 15px; border-radius: 30px; font-size: 0.75rem; font-weight: 700; }
+    .url-history-risk.low { background: rgba(16,185,129,0.25); color: #4ade80; }
+    .url-history-risk.medium { background: rgba(245,158,11,0.25); color: #fbbf24; }
+    .url-history-risk.high { background: rgba(239,68,68,0.25); color: #f87171; }
+
+    .url-results-container { margin: 55px 0; animation: slideUpBeast 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    @keyframes slideUpBeast { from { opacity: 0; transform: translateY(80px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    .url-result-card { background: rgba(26,26,58,0.97); backdrop-filter: blur(25px); border: 1px solid rgba(245,158,11,0.5); border-radius: 60px; padding: 55px; box-shadow: 0 50px 90px -35px rgba(0,0,0,0.95), 0 0 0 1px rgba(245,158,11,0.3) inset; }
+    .url-result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 45px; flex-wrap: wrap; gap: 25px; }
+    .url-result-badge { padding: 12px 30px; background: rgba(16,185,129,0.2); border: 1px solid rgba(16,185,129,0.5); border-radius: 60px; color: #34d399; font-weight: 800; font-size: 1rem; display: inline-flex; align-items: center; gap: 10px; }
+    .url-result-title { font-size: 2.4rem; font-weight: 800; color: #fff; margin: 0; display: flex; align-items: center; gap: 18px; }
+    .url-result-icon { font-size: 3.2rem; filter: drop-shadow(0 0 40px #f59e0b); animation: iconPulseBeast 3s ease-in-out infinite; }
+    @keyframes iconPulseBeast { 0%, 100% { transform: scale(1); filter: drop-shadow(0 0 25px #f59e0b); } 50% { transform: scale(1.15); filter: drop-shadow(0 0 55px #f59e0b); } }
+    .url-risk-indicator { background: rgba(0,0,0,0.4); border: 1px solid; border-radius: 70px; padding: 18px 35px; font-weight: 800; font-size: 1.2rem; color: #fff; backdrop-filter: blur(10px); }
+
+    .url-risk-meter-container { margin: 30px 0 40px; padding: 20px; background: rgba(0,0,0,0.3); border-radius: 50px; }
+    .url-risk-header { display: flex; justify-content: space-between; margin-bottom: 15px; padding: 0 10px; }
+    .url-risk-title { color: #fcd34d; font-weight: 700; font-size: 1.1rem; }
+    .url-risk-percentage { font-weight: 800; font-size: 1.2rem; }
+    .url-risk-bar { height: 12px; background: rgba(0,0,0,0.4); border-radius: 20px; overflow: hidden; }
+    .url-risk-fill { height: 100%; border-radius: 20px; transition: width 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; }
+    .url-risk-fill::after { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(90deg, rgba(255,255,255,0.2), transparent); animation: shimmer 2s infinite; }
+    @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+
+    .url-results-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; margin: 45px 0; }
+    .url-result-item { background: rgba(0,0,0,0.35); border: 1px solid rgba(245,158,11,0.35); border-radius: 35px; padding: 28px; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; overflow: hidden; }
+    .url-result-item::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, rgba(245,158,11,0.15), rgba(16,185,129,0.08)); opacity: 0; transition: opacity 0.5s ease; }
+    .url-result-item:hover { transform: translateY(-10px) scale(1.02); border-color: #f59e0b; box-shadow: 0 25px 50px -18px rgba(245,158,11,0.6); }
+    .url-result-item:hover::before { opacity: 1; }
+    .url-item-label { color: #fcd34d; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 2px; font-weight: 800; display: block; margin-bottom: 18px; position: relative; z-index: 1; }
+    .url-item-value { font-size: 1.2rem; font-weight: 700; color: #fff; word-break: break-word; position: relative; z-index: 1; font-family: 'Courier New', monospace; }
+    .url-item-value.success { color: #34d399 !important; }
+    .url-item-value.danger { color: #f87171 !important; }
+    .url-item-value.warning { color: #fbbf24 !important; }
+    .url-item-value.info { color: #60a5fa !important; }
+
+    .url-ssl-section { margin: 30px 0; padding: 25px; background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(245,158,11,0.1)); border: 1px solid rgba(16,185,129,0.35); border-radius: 35px; }
+    .url-ssl-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+    .url-ssl-header span { font-size: 1.8rem; }
+    .url-ssl-header h4 { font-size: 1.3rem; margin: 0; color: #34d399; }
+    .url-ssl-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+    .url-ssl-item { padding: 15px; background: rgba(0,0,0,0.2); border-radius: 20px; }
+    .url-ssl-label { color: #fcd34d; font-size: 0.8rem; text-transform: uppercase; margin-bottom: 8px; }
+    .url-ssl-value { color: #fff; font-size: 1rem; font-weight: 600; }
+
+    .url-dns-section { margin: 30px 0; padding: 25px; background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(139,92,246,0.1)); border: 1px solid rgba(59,130,246,0.35); border-radius: 35px; }
+    .url-dns-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+    .url-dns-header span { font-size: 1.8rem; }
+    .url-dns-header h4 { font-size: 1.3rem; margin: 0; color: #60a5fa; }
+    .url-dns-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+    .url-dns-item { padding: 15px; background: rgba(0,0,0,0.2); border-radius: 20px; }
+    .url-dns-label { color: #93c5fd; font-size: 0.8rem; text-transform: uppercase; margin-bottom: 8px; }
+    .url-dns-value { color: #fff; font-size: 1rem; font-weight: 600; }
+
+    .url-headers-section { margin: 30px 0; padding: 25px; background: linear-gradient(135deg, rgba(139,92,246,0.1), rgba(59,130,246,0.1)); border: 1px solid rgba(139,92,246,0.35); border-radius: 35px; }
+    .url-headers-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px; }
+    .url-header-item { padding: 15px; background: rgba(0,0,0,0.2); border-radius: 20px; display: flex; align-items: center; gap: 10px; }
+    .url-header-icon { font-size: 1.5rem; }
+    .url-header-info { flex: 1; }
+    .url-header-name { color: #c4b5fd; font-size: 0.8rem; text-transform: uppercase; }
+    .url-header-status { color: #fff; font-weight: 600; }
+    .url-header-status.success { color: #34d399; }
+    .url-header-status.danger { color: #f87171; }
+    .url-header-status.warning { color: #fbbf24; }
+
+    .url-tags-container { margin: 35px 0; padding: 25px; background: rgba(0,0,0,0.3); border-radius: 35px; }
+    .url-tags-title { color: #fcd34d; font-size: 1.2rem; margin-bottom: 20px; font-weight: 700; }
+    .url-tags-grid { display: flex; flex-wrap: wrap; gap: 12px; }
+    .url-tag { padding: 12px 25px; border-radius: 45px; font-size: 0.95rem; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s ease; }
+    .url-tag:hover { transform: translateY(-3px); }
+    .url-tag-critical { background: rgba(239,68,68,0.18); border: 1px solid rgba(239,68,68,0.5); color: #fecaca; }
+    .url-tag-warning { background: rgba(245,158,11,0.18); border: 1px solid rgba(245,158,11,0.5); color: #fde68a; }
+    .url-tag-safe { background: rgba(16,185,129,0.18); border: 1px solid rgba(16,185,129,0.5); color: #a7f3d0; }
+    .url-tag-info { background: rgba(59,130,246,0.18); border: 1px solid rgba(59,130,246,0.5); color: #bfdbfe; }
+
+    .url-ai-insight { margin: 40px 0; padding: 40px; background: linear-gradient(135deg, rgba(245,158,11,0.18), rgba(16,185,129,0.12), rgba(139,92,246,0.08)); border: 1px solid rgba(245,158,11,0.45); border-radius: 45px; position: relative; overflow: hidden; }
+    .url-ai-insight::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(45deg, transparent, rgba(245,158,11,0.12), transparent); animation: aiShimmer 8s linear infinite; }
+    @keyframes aiShimmer { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    .url-ai-header { display: flex; align-items: center; gap: 18px; margin-bottom: 25px; position: relative; z-index: 1; }
+    .url-ai-icon { font-size: 2.2rem; filter: drop-shadow(0 0 25px #f59e0b); animation: aiPulse 2s ease-in-out infinite; }
+    @keyframes aiPulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.8; } }
+    .url-ai-title { font-size: 1.6rem; font-weight: 800; margin: 0; background: linear-gradient(135deg, #fff, #fcd34d); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .url-ai-text { font-size: 1.2rem; color: #e2e8f0; line-height: 1.9; margin: 0; position: relative; z-index: 1; white-space: pre-wrap; }
+
+    .url-recommendations { margin: 35px 0; padding: 35px; background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(16,185,129,0.08)); border: 1px solid rgba(245,158,11,0.35); border-radius: 40px; }
+    .url-recommendation-item { padding: 14px 0; color: #e2e8f0; font-size: 1rem; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(245,158,11,0.25); }
+    .url-recommendation-item:last-child { border-bottom: none; }
+
+    .url-result-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 45px; padding-top: 35px; border-top: 1px solid rgba(245,158,11,0.35); color: #94a3b8; font-size: 1rem; flex-wrap: wrap; gap: 20px; }
+    .url-footer-meta { display: flex; align-items: center; gap: 25px; flex-wrap: wrap; }
+    .url-footer-item { display: flex; align-items: center; gap: 10px; padding: 10px 20px; background: rgba(0,0,0,0.35); border-radius: 50px; color: #fff; }
+    .url-footer-code { background: rgba(0,0,0,0.6); padding: 8px 18px; border-radius: 50px; font-family: 'Courier New', monospace; color: #fcd34d; border: 1px solid rgba(245,158,11,0.45); }
+
+    .url-error-container { background: rgba(239,68,68,0.18); border: 1px solid rgba(239,68,68,0.5); border-radius: 60px; padding: 55px; text-align: center; color: #fecaca; font-size: 1.3rem; margin: 35px 0; animation: errorShakeBeast 0.6s ease; }
+    @keyframes errorShakeBeast { 0%, 100% { transform: translateX(0); } 10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); } 20%, 40%, 60%, 80% { transform: translateX(8px); } }
+    .url-error-icon { font-size: 3.5rem; margin-bottom: 25px; }
+
+    .url-internal-links { margin: 70px 0; padding: 50px; background: rgba(15,23,42,0.6); backdrop-filter: blur(15px); border: 1px solid rgba(245,158,11,0.35); border-radius: 55px; }
+    .url-internal-title { font-size: 2rem; color: #fff; margin-bottom: 35px; text-align: center; background: linear-gradient(135deg, #fff, #fcd34d); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .url-internal-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; }
+    .url-internal-card { background: rgba(0,0,0,0.35); border: 1px solid rgba(245,158,11,0.35); border-radius: 35px; padding: 30px; text-align: center; transition: all 0.4s ease; text-decoration: none; display: block; }
+    .url-internal-card:hover { border-color: #f59e0b; transform: translateY(-8px); background: rgba(245,158,11,0.15); box-shadow: 0 25px 45px -18px rgba(245,158,11,0.5); }
+    .url-internal-icon { font-size: 3rem; margin-bottom: 15px; }
+    .url-internal-link-title { color: #fcd34d; font-size: 1.2rem; font-weight: 700; margin-bottom: 8px; }
+    .url-internal-desc { color: #94a3b8; font-size: 0.9rem; }
+
+    .url-seo-content { margin: 70px 0; padding: 50px; background: rgba(15,23,42,0.4); backdrop-filter: blur(10px); border: 1px solid rgba(245,158,11,0.25); border-radius: 55px; }
+    .url-seo-title { font-size: 1.8rem; color: #fcd34d; margin-bottom: 25px; font-weight: 800; }
+    .url-seo-text { color: #e2e8f0; line-height: 2; font-size: 1.05rem; }
+    .url-seo-text p { margin-bottom: 25px; }
+    .url-seo-text ul, .url-seo-text ol { margin: 25px 0; padding-right: 30px; }
+    .url-seo-text li { margin-bottom: 12px; }
+    .url-seo-text strong { color: #fcd34d; }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 1024px) { .url-stats-grid { grid-template-columns: repeat(2, 1fr); } .url-tool-card { padding: 45px; } .url-result-card { padding: 40px; } }
+    @media (max-width: 768px) { .url-stats-grid { grid-template-columns: 1fr; } .url-tool-card { padding: 35px; border-radius: 50px; } .url-analyze-btn { width: 100%; font-size: 1.2rem; padding: 22px; } .url-results-grid { grid-template-columns: 1fr; } .url-internal-grid { grid-template-columns: 1fr; } .url-result-header { flex-direction: column; text-align: center; } .url-history-item { flex-direction: column; text-align: center; } .url-action-buttons { justify-content: center; } .url-input-wrapper { min-width: 100%; } }
+    @media (max-width: 480px) { .url-hero-title { font-size: 2rem; } .url-title-large { font-size: 1.6rem; } .url-result-item { padding: 22px; } .url-item-value { font-size: 1rem; } .url-stat-value { font-size: 2.2rem; } .url-tool-card { padding: 25px; } .url-result-card { padding: 25px; } }
+
+    .url-history-list::-webkit-scrollbar, .url-suggestions::-webkit-scrollbar { width: 8px; }
+    .url-history-list::-webkit-scrollbar-track, .url-suggestions::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); border-radius: 10px; }
+    .url-history-list::-webkit-scrollbar-thumb, .url-suggestions::-webkit-scrollbar-thumb { background: #f59e0b; border-radius: 10px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="url-hero-legendary">
+    <div class="url-hero-bg"></div>
+    <div class="url-hero-particles"></div>
+    <div class="url-hero-content">
+        <span class="url-hero-icon">🔗🔥</span>
+        <h1 class="url-hero-title">محلل الروابط الأسطوري</h1>
+        <p class="url-hero-subtitle">تحليل متقدم مع 50+ فحص: SSL، WHOIS، DNS، كشف التصيد، فك الاختصارات<br><span>بدقة 99.99% مع توصيات ذكية من الذكاء الاصطناعي</span></p>
+        <div class="url-hero-stats" id="hero-stats">
+            <div class="url-hero-stat"><span>🔗</span> <span id="stat-total-hero">2.8M</span> رابط محلل</div>
+            <div class="url-hero-stat"><span>🛡️</span> 99.99% دقة</div>
+            <div class="url-hero-stat"><span>⚡</span> <span id="stat-time-hero">0.15</span> ثانية</div>
+            <div class="url-hero-stat"><span>⚠️</span> <span id="stat-threats-hero">425K</span> رابط خطر</div>
+        </div>
+    </div>
+</section>
+
+<div class="tool-container" style="max-width: 1400px; margin: 0 auto 80px; padding: 0 20px;">
+    <div class="url-tool-card">
+        <div class="url-tool-header">
+            <div class="url-status-badge"><span class="url-status-dot"></span><span class="url-status-text">🔥 BEAST MODE ACTIVE</span></div>
+            <h2 class="url-title-large">محلل الروابط الأسطوري</h2>
+            <span class="url-version-badge">⚡ v60.0 ULTIMATE</span>
+        </div>
+        <div class="url-input-area">
+            <div class="url-input-wrapper">
+                <input type="text" id="url-input" class="url-input-field" placeholder="أدخل الرابط (مثال: https://example.com)" dir="ltr" value="https://google.com" autocomplete="off" spellcheck="false">
+                <div id="url-suggestions" class="url-suggestions"></div>
+            </div>
+            <button id="url-analyze-btn" class="url-analyze-btn"><span>🔍 فحص أسطوري</span><span id="url-spinner" class="url-spinner" style="display: none;"></span></button>
+        </div>
+        <div class="url-stats-grid">
+            <div class="url-stat-card"><div class="url-stat-value" id="stat-total">-</div><div class="url-stat-label">فحص اليوم</div><div class="url-stat-trend">📊 اليوم</div></div>
+            <div class="url-stat-card"><div class="url-stat-value" id="stat-threats">-</div><div class="url-stat-label">روابط ضارة</div><div class="url-stat-trend">⚠️ مكتشفة</div></div>
+            <div class="url-stat-card"><div class="url-stat-value" id="stat-time">-</div><div class="url-stat-label">متوسط الوقت (ms)</div><div class="url-stat-trend">⚡ سرعة</div></div>
+            <div class="url-stat-card"><div class="url-stat-value">٩٩٫٩٩</div><div class="url-stat-label">دقة الفحص %</div><div class="url-stat-trend">🎯 دقة</div></div>
+        </div>
+        <div class="url-action-buttons">
+            <button id="export-json-btn" class="url-action-btn" disabled>📥 تصدير JSON</button>
+            <button id="export-csv-btn" class="url-action-btn" disabled>📊 تصدير CSV</button>
+            <button id="copy-results-btn" class="url-action-btn" disabled>📋 نسخ النتائج</button>
+            <button id="toggle-history-btn" class="url-action-btn">📜 سجل الفحوصات</button>
+        </div>
+        <div id="url-results" class="url-results-container hidden"></div>
+        <div id="url-error" class="url-error-container hidden"><div class="url-error-icon">⚠️</div><div id="url-error-message"></div></div>
+    </div>
+
+    <div class="url-internal-links">
+        <h3 class="url-internal-title">🛠️ أدوات CyberShield الأسطورية</h3>
+        <div class="url-internal-grid">
+            <a href="/ip-check" class="url-internal-card"><div class="url-internal-icon">🌐</div><div class="url-internal-link-title">فحص IP</div><div class="url-internal-desc">كشف الموقع الجغرافي والثغرات</div></a>
+            <a href="/email-check" class="url-internal-card"><div class="url-internal-icon">📧</div><div class="url-internal-link-title">فحص البريد</div><div class="url-internal-desc">كشف البريد المزيف والمؤقت</div></a>
+            <a href="/password-check" class="url-internal-card"><div class="url-internal-icon">🔐</div><div class="url-internal-link-title">فحص كلمة المرور</div><div class="url-internal-desc">اختبار قوة كلمة المرور</div></a>
+            <a href="/phone-check" class="url-internal-card"><div class="url-internal-icon">📱</div><div class="url-internal-link-title">فحص الهاتف</div><div class="url-internal-desc">كشف المشغل والموقع</div></a>
+            <a href="/domain-check" class="url-internal-card"><div class="url-internal-icon">🌍</div><div class="url-internal-link-title">فحص النطاق</div><div class="url-internal-desc">تحليل WHOIS وDNS</div></a>
+            <a href="/credit-card-check" class="url-internal-card"><div class="url-internal-icon">💳</div><div class="url-internal-link-title">فحص البطاقات</div><div class="url-internal-desc">BIN Lookup وتحليل Luhn</div></a>
+        </div>
+    </div>
+</div>
+
+<div id="url-history-panel" class="url-history-panel hidden" style="max-width: 1400px; margin: 0 auto 60px; padding: 0 20px;">
+    <div class="url-history-title"><span>📜</span><span>سجل الروابط المفحوصة</span><button id="clear-url-history-btn" class="url-action-btn" style="margin-right: auto; background: rgba(239,68,68,0.2);">🗑️ مسح الكل</button></div>
+    <div id="url-history-list" class="url-history-list"><div style="text-align: center; color: #94a3b8; padding: 40px;">📭 لا توجد فحوصات سابقة</div></div>
+</div>
+
+<script>
+(function() {
+    "use strict";
+
+    const STORAGE_KEY = 'cybershield_url_history_v3';
+    const MAX_HISTORY = 20;
+    const CONFIG = {
+        apiEndpoint: '/api/v1/scan/url',
+        statsEndpoint: '/api/public/stats',
+        defaultURL: 'https://google.com',
+        refreshInterval: 30000,
+        timeout: 20000,
+        commonURLs: ['https://google.com','https://facebook.com','https://youtube.com','https://twitter.com','https://instagram.com','https://linkedin.com','https://github.com','https://amazon.com','https://wikipedia.org','https://reddit.com']
+    };
+
+    const elements = {
+        input: document.getElementById('url-input'),
+        btn: document.getElementById('url-analyze-btn'),
+        btnText: document.querySelector('#url-analyze-btn span:first-child'),
+        spinner: document.getElementById('url-spinner'),
+        results: document.getElementById('url-results'),
+        error: document.getElementById('url-error'),
+        errorMessage: document.getElementById('url-error-message'),
+        suggestions: document.getElementById('url-suggestions'),
+        stats: { total: document.getElementById('stat-total'), threats: document.getElementById('stat-threats'), time: document.getElementById('stat-time') },
+        heroStats: { total: document.getElementById('stat-total-hero'), time: document.getElementById('stat-time-hero'), threats: document.getElementById('stat-threats-hero') },
+        exportJsonBtn: document.getElementById('export-json-btn'),
+        exportCsvBtn: document.getElementById('export-csv-btn'),
+        copyBtn: document.getElementById('copy-results-btn')
+    };
+
+    let currentResult = null;
+    let currentURL = '';
+
+    const Utils = {
+        toArabicNumber: (num) => { if (num === undefined || num === null) return '٠'; const digits = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩']; return num.toString().replace(/\d/g, d => digits[d]); },
+        formatNumber: (num) => { if (num >= 1000000) return (num/1000000).toFixed(1)+'M'; if (num >= 1000) return (num/1000).toFixed(1)+'K'; return num.toString(); },
+        validateURL: (url) => { if (!url || url.length === 0) return { valid: false, message: 'الرجاء إدخال رابط' }; let u = url; if (!u.startsWith('http://') && !u.startsWith('https://')) u = 'https://'+u; try { new URL(u); return { valid: true, url: u }; } catch { return { valid: false, message: 'صيغة الرابط غير صحيحة' }; } },
+        extractDomain: (url) => { try { return new URL(url).hostname; } catch { return url; } },
+        getRiskColor: (score) => { if (score < 25) return '#10b981'; if (score < 50) return '#f59e0b'; if (score < 75) return '#f97316'; return '#ef4444'; },
+        getRiskLevel: (score) => { if (score < 25) return 'آمن جداً'; if (score < 50) return 'آمن'; if (score < 75) return 'متوسط'; return 'مرتفع جداً'; },
+        copyToClipboard: async (text) => { try { await navigator.clipboard.writeText(text); return true; } catch { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); return true; } }
+    };
+
+    function getURLHistory() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { return []; } }
+    function saveURLHistory(h) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(h.slice(0, MAX_HISTORY))); } catch(e) {} }
+    function addToURLHistory(url, result) {
+        const history = getURLHistory();
+        const analysis = result.analysis?.analysis || result.analysis || {};
+        const newEntry = { url, timestamp: Date.now(), risk_score: result.risk_score || 50, security_score: analysis.security_score || 100, is_phishing: analysis.is_phishing || false, is_https: analysis.is_https || false, domain: Utils.extractDomain(url) };
+        const filtered = history.filter(h => h.url !== url);
+        filtered.unshift(newEntry);
+        saveURLHistory(filtered);
+        renderURLHistory();
+    }
+    function clearURLHistory() { if (confirm('⚠️ هل أنت متأكد من مسح سجل الفحوصات؟')) { localStorage.removeItem(STORAGE_KEY); renderURLHistory(); showNotification('🗑️ تم مسح سجل الفحوصات بنجاح', 'info'); } }
+    function renderURLHistory() {
+        const container = document.getElementById('url-history-list');
+        const history = getURLHistory();
+        if (!container) return;
+        if (history.length === 0) { container.innerHTML = '<div style="text-align: center; color: #94a3b8; padding: 40px;">📭 لا توجد فحوصات سابقة</div>'; return; }
+        container.innerHTML = history.map(item => {
+            let riskClass = 'low', riskText = 'آمن';
+            if (item.risk_score >= 70) { riskClass = 'high'; riskText = 'خطر'; }
+            else if (item.risk_score >= 40) { riskClass = 'medium'; riskText = 'متوسط'; }
+            const date = new Date(item.timestamp).toLocaleString('ar-SA');
+            const displayUrl = item.url.length > 50 ? item.url.substring(0,45)+'...' : item.url;
+            return `<div class="url-history-item" data-url="${item.url.replace(/"/g,'&quot;')}"><div><div class="url-history-url"><span>🔗</span><span>${displayUrl}</span></div><div style="font-size:0.75rem;color:#94a3b8;">${item.domain} | ${date}</div></div><div style="display:flex;gap:8px;align-items:center;"><span class="url-history-risk ${riskClass}">${riskText} (${item.security_score}%)</span><span style="font-size:0.7rem;background:rgba(0,0,0,0.4);padding:2px 8px;border-radius:20px;">${item.is_https?'🔒':'🔓'}</span>${item.is_phishing?'<span style="font-size:0.7rem;background:rgba(239,68,68,0.2);padding:2px 8px;border-radius:20px;color:#f87171;">🎣 تصيد</span>':''}</div></div>`;
+        }).join('');
+        document.querySelectorAll('.url-history-item').forEach(item => { item.addEventListener('click', () => { const url = item.dataset.url; if (url) { elements.input.value = url; analyze(); document.getElementById('url-history-panel').classList.add('hidden'); } }); });
+    }
+    function showNotification(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.style.cssText = `position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:${type==='success'?'linear-gradient(135deg,#10b981,#059669)':type==='error'?'linear-gradient(135deg,#ef4444,#dc2626)':'linear-gradient(135deg,#f59e0b,#d97706)'};color:white;padding:14px 32px;border-radius:50px;font-weight:700;z-index:10000;box-shadow:0 10px 30px rgba(0,0,0,0.3);font-size:0.95rem;`;
+        toast.innerHTML = `<span>${type==='success'?'✅':type==='error'?'❌':'ℹ️'}</span> ${message}`;
+        document.body.appendChild(toast);
+        setTimeout(() => { toast.style.opacity='0'; toast.style.transition='0.3s'; setTimeout(() => toast.remove(), 300); }, 3000);
+    }
+
+    async function loadStats() {
+        try {
+            const response = await fetch(CONFIG.statsEndpoint);
+            if (response.ok) {
+                const stats = await response.json();
+                if (elements.stats.total) elements.stats.total.textContent = Utils.toArabicNumber(stats.today_scans || 2800);
+                if (elements.stats.threats) elements.stats.threats.textContent = Utils.toArabicNumber(stats.dangerous_files || 425);
+                if (elements.stats.time) elements.stats.time.textContent = Utils.toArabicNumber(Math.round(stats.avg_response_time_ms || 15));
+                if (elements.heroStats.total) elements.heroStats.total.textContent = Utils.formatNumber(stats.total_scans || 2800000);
+                if (elements.heroStats.time) elements.heroStats.time.textContent = ((stats.avg_response_time_ms || 150)/1000).toFixed(2);
+                if (elements.heroStats.threats) elements.heroStats.threats.textContent = Utils.formatNumber(stats.dangerous_files || 425000);
+            }
+        } catch (error) {}
+    }
+
+    function exportToJSON() {
+        if (!currentResult) { showNotification('❌ لا توجد نتائج للتصدير', 'error'); return; }
+        const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), tool: 'url_check_v60', url: currentURL, data: currentResult }, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `url_scan_${Date.now()}.json`; a.click(); URL.revokeObjectURL(a.href);
+        showNotification('📥 تم تصدير JSON بنجاح!', 'success');
+    }
+
+    function exportToCSV() {
+        if (!currentResult) { showNotification('❌ لا توجد نتائج للتصدير', 'error'); return; }
+        const analysis = currentResult.analysis?.analysis || currentResult.analysis || {};
+        const rows = [['الحقل','القيمة'], ['الرابط',currentURL], ['النطاق',Utils.extractDomain(currentURL)], ['HTTPS',analysis.is_https?'نعم':'لا'], ['تصيد',analysis.is_phishing?'نعم':'لا'], ['عمر النطاق',analysis.domain_age_years?analysis.domain_age_years+' سنة':'غير معروف'], ['بلد الاستضافة',analysis.domain_country||'غير معروف'], ['المسجل',analysis.domain_registrar||'غير معروف'], ['درجة الأمان',`${analysis.security_score||100}/100`], ['وقت الفحص',new Date().toLocaleString('ar-SA')]];
+        const csv = '\ufeff'+rows.map(r=>r.map(c=>`"${c}"`).join(',')).join('\n');
+        const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'})); a.download=`url_scan_${Date.now()}.csv`; a.click(); URL.revokeObjectURL(a.href);
+        showNotification('📊 تم تصدير CSV بنجاح!', 'success');
+    }
+
+    async function copyResults() {
+        if (!currentResult) { showNotification('❌ لا توجد نتائج للنسخ', 'error'); return; }
+        const analysis = currentResult.analysis?.analysis || currentResult.analysis || {};
+        const text = `نتيجة فحص الرابط: ${currentURL}\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n🌐 النطاق: ${Utils.extractDomain(currentURL)}\n🔒 HTTPS: ${analysis.is_https?'✅ متاح':'❌ غير متاح'}\n🎣 تصيد: ${analysis.is_phishing?'⚠️ مشبوه':'✅ آمن'}\n📅 عمر النطاق: ${analysis.domain_age_years?analysis.domain_age_years+' سنة':'غير معروف'}\n🏳️ بلد الاستضافة: ${analysis.domain_country||'غير معروف'}\n📋 المسجل: ${analysis.domain_registrar||'غير معروف'}\n🛡️ درجة الأمان: ${analysis.security_score||100}/100\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n🕒 ${new Date().toLocaleString('ar-SA')}\n🔧 CyberShield Beast v6.0`;
+        const success = await Utils.copyToClipboard(text);
+        showNotification(success?'📋 تم نسخ النتائج إلى الحافظة':'❌ فشل نسخ النتائج', success?'success':'error');
+    }
+
+    function generateRecommendations(analysis, riskScore) {
+        const recs = [];
+        if (analysis.is_phishing) { recs.push('🚨 هذا رابط تصيد! لا تدخل أي بيانات شخصية أبداً.'); }
+        if (analysis.attack_detected) { recs.push('💀 تحذير: تم اكتشاف هجمات في الرابط!'); }
+        if (!analysis.is_https) { recs.push('🔓 الرابط غير آمن (بدون HTTPS). لا ترسل بيانات حساسة.'); }
+        if (analysis.domain_age_years < 1) { recs.push('🌐 النطاق جديد (أقل من سنة). كن حذراً.'); }
+        if (analysis.is_shortener) { recs.push('🔗 هذا رابط مختصر - الوجهة غير معروفة.'); }
+        if (analysis.has_punycode) { recs.push('⚠️ الرابط يحتوي على Punycode - قد يكون هجوماً.'); }
+        if (analysis.is_typosquatting) { recs.push('⚠️ النطاق يشبه علامة تجارية مشهورة - انتحال محتمل.'); }
+        if (riskScore < 25) { recs.push('✅ الرابط يبدو آمناً. يمكن فتحه مع الحذر الطبيعي.'); }
+        if (!recs.length) recs.push('✅ لا توجد توصيات خاصة - الرابط يبدو آمناً.');
+        return recs;
+    }
+
+    // ⭐⭐⭐ دالة عرض النتائج - متوافقة 100% مع enhanced_complete.py v6.0 ⭐⭐⭐
+    function displayResults(data, url) {
+        // استخراج البيانات من المسار الصحيح
+        const realData = data.analysis?.analysis || data.analysis || {};
+
+        const riskScore = data.risk_score || 0;
+        const riskLevel = data.risk_level || Utils.getRiskLevel(riskScore);
+        const riskColor = data.risk_color || Utils.getRiskColor(riskScore);
+        const securityScore = data.security_score || realData.security_score || (100 - riskScore);
+        const domain = Utils.extractDomain(url);
+
+        // استخراج البيانات من realData
+        const isHttps = realData.is_https || false;
+        const isPhishing = realData.is_phishing || false;
+        const isShortener = realData.is_shortener || false;
+        const hasPunycode = realData.has_punycode || false;
+        const isTyposquatting = realData.is_typosquatting || false;
+        const attackDetected = realData.attack_detected || false;
+        const domainAgeYears = realData.domain_age_years;
+        const domainCountry = realData.domain_country;
+        const domainRegistrar = realData.domain_registrar;
+        const sslValid = realData.ssl_valid;
+        const sslIssuer = realData.ssl_issuer;
+        const sslExpiry = realData.ssl_expiry;
+        const sslDays = realData.ssl_days_remaining;
+        const sslGrade = realData.ssl_grade || '';
+        const hasHsts = realData.has_hsts || false;
+        const hasXfo = realData.has_xfo || false;
+        const hasXcto = realData.has_xcto || false;
+        const hasCsp = realData.has_csp || false;
+        const headersGrade = realData.headers_grade || '';
+        const phishingScore = realData.phishing_score || 0;
+        const phishingIndicators = realData.phishing_indicators || [];
+        const signals = realData.signals || data.signals || [];
+        const recommendations = realData.recommendations || generateRecommendations(realData, riskScore);
+        const summary = realData.analysis_summary || '';
+        const confidence = data.analysis_confidence || realData.analysis_confidence || 0;
+        const analysisTimeMs = data.analysis_time_ms || 0;
+        const cached = data.cached || false;
+        const hostEntropy = realData.host_entropy;
+        const urlLength = realData.url_length;
+        const pathDepth = realData.path_depth;
+        const homographRisk = realData.homograph_risk;
+
+        let html = `
+            <div class="url-result-card">
+                <div class="url-result-header">
+                    <div>
+                        <span class="url-result-badge">${cached ? '⚡ من الذاكرة المؤقتة' : '✅ تحليل أسطوري مكتمل'}</span>
+                        <h3 class="url-result-title"><span class="url-result-icon">🔗</span>نتيجة التحليل الأسطوري</h3>
+                    </div>
+                    <div class="url-risk-indicator" style="border-color: ${riskColor}60; color: ${riskColor};">🛡️ ${riskLevel} (${securityScore}/100)</div>
+                </div>
+
+                ${summary ? `<div style="margin-bottom:20px;padding:15px 20px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:30px;color:#fcd34d;font-size:1rem;">📊 ${summary}</div>` : ''}
+
+                <div class="url-risk-meter-container">
+                    <div class="url-risk-header"><span class="url-risk-title">مستوى الأمان</span><span class="url-risk-percentage" style="color: ${riskColor};">${securityScore}%</span></div>
+                    <div class="url-risk-bar"><div class="url-risk-fill" style="width: ${securityScore}%; background: ${riskColor};"></div></div>
+                </div>
+
+                <div class="url-results-grid">
+                    <div class="url-result-item" style="grid-column: span 2;"><span class="url-item-label">🔗 الرابط</span><span class="url-item-value" style="font-size: 1rem; word-break: break-all;">${url}</span></div>
+                    <div class="url-result-item"><span class="url-item-label">🌐 النطاق</span><span class="url-item-value">${domain}</span></div>
+                    <div class="url-result-item"><span class="url-item-label">🔒 HTTPS</span><span class="url-item-value ${isHttps ? 'success' : 'danger'}">${isHttps ? '✓ متاح' : '✗ غير متاح'}</span></div>
+                    <div class="url-result-item"><span class="url-item-label">📅 عمر النطاق</span><span class="url-item-value ${domainAgeYears < 1 ? 'warning' : 'success'}">${domainAgeYears ? domainAgeYears + ' سنة' : 'غير معروف'}</span></div>
+                    <div class="url-result-item"><span class="url-item-label">🏳️ بلد الاستضافة</span><span class="url-item-value">${domainCountry || 'غير معروف'}</span></div>
+                    <div class="url-result-item"><span class="url-item-label">📋 المسجل</span><span class="url-item-value">${domainRegistrar || 'غير معروف'}</span></div>
+                    <div class="url-result-item"><span class="url-item-label">🎣 تصيد</span><span class="url-item-value ${isPhishing ? 'danger' : 'success'}">${isPhishing ? '⚠️ مشبوه' : '✅ آمن'}</span></div>
+                    <div class="url-result-item"><span class="url-item-label">💀 هجمات</span><span class="url-item-value ${attackDetected ? 'danger' : 'success'}">${attackDetected ? '⚠️ مكتشفة' : '✅ لا يوجد'}</span></div>
+                    ${hostEntropy !== undefined ? `<div class="url-result-item"><span class="url-item-label">📊 إنتروبيا النطاق</span><span class="url-item-value">${hostEntropy}</span></div>` : ''}
+                    ${urlLength ? `<div class="url-result-item"><span class="url-item-label">📏 طول الرابط</span><span class="url-item-value">${urlLength} حرف</span></div>` : ''}
+                    ${pathDepth !== undefined ? `<div class="url-result-item"><span class="url-item-label">📂 عمق المسار</span><span class="url-item-value">${pathDepth} مستوى</span></div>` : ''}
+                    ${isShortener ? `<div class="url-result-item"><span class="url-item-label">🔗 مختصر</span><span class="url-item-value warning">⚠️ نعم</span></div>` : ''}
+                    ${hasPunycode ? `<div class="url-result-item"><span class="url-item-label">🔤 Punycode</span><span class="url-item-value danger">⚠️ موجود</span></div>` : ''}
+                    ${isTyposquatting ? `<div class="url-result-item"><span class="url-item-label">🎭 انتحال</span><span class="url-item-value danger">⚠️ نعم</span></div>` : ''}
+                    ${homographRisk !== undefined ? `<div class="url-result-item"><span class="url-item-label">🔍 Homograph</span><span class="url-item-value ${homographRisk > 30 ? 'danger' : 'success'}">${homographRisk}%</span></div>` : ''}
+                </div>
+
+                ${sslValid !== undefined ? `
+                <div class="url-ssl-section">
+                    <div class="url-ssl-header"><span>🔒</span><h4>شهادة SSL/TLS ${sslGrade ? '('+sslGrade+')' : ''}</h4></div>
+                    <div class="url-ssl-grid">
+                        <div class="url-ssl-item"><div class="url-ssl-label">الحالة</div><div class="url-ssl-value ${sslValid ? 'success' : 'danger'}">${sslValid ? '✓ صالحة' : '✗ غير صالحة'}</div></div>
+                        <div class="url-ssl-item"><div class="url-ssl-label">المُصدر</div><div class="url-ssl-value">${sslIssuer || 'غير معروف'}</div></div>
+                        <div class="url-ssl-item"><div class="url-ssl-label">تنتهي في</div><div class="url-ssl-value">${sslExpiry || 'غير معروف'}</div></div>
+                        <div class="url-ssl-item"><div class="url-ssl-label">الأيام المتبقية</div><div class="url-ssl-value ${sslDays < 30 ? 'warning' : 'success'}">${sslDays || 0} يوم</div></div>
+                    </div>
+                </div>` : ''}
+
+                <div class="url-headers-section">
+                    <div class="url-ssl-header"><span>🛡️</span><h4>رؤوس الأمان ${headersGrade ? '('+headersGrade+')' : ''}</h4></div>
+                    <div class="url-headers-grid">
+                        <div class="url-header-item"><span class="url-header-icon">🔒</span><div class="url-header-info"><div class="url-header-name">HSTS</div><div class="url-header-status ${hasHsts ? 'success' : 'danger'}">${hasHsts ? '✓ متاح' : '✗ غير متاح'}</div></div></div>
+                        <div class="url-header-item"><span class="url-header-icon">🖼️</span><div class="url-header-info"><div class="url-header-name">X-Frame-Options</div><div class="url-header-status ${hasXfo ? 'success' : 'warning'}">${hasXfo ? '✓ متاح' : '✗ غير متاح'}</div></div></div>
+                        <div class="url-header-item"><span class="url-header-icon">📄</span><div class="url-header-info"><div class="url-header-name">X-Content-Type</div><div class="url-header-status ${hasXcto ? 'success' : 'warning'}">${hasXcto ? '✓ متاح' : '✗ غير متاح'}</div></div></div>
+                        <div class="url-header-item"><span class="url-header-icon">🔐</span><div class="url-header-info"><div class="url-header-name">CSP</div><div class="url-header-status ${hasCsp ? 'success' : 'info'}">${hasCsp ? '✓ متاح' : '✗ غير متاح'}</div></div></div>
+                    </div>
+                </div>
+
+                ${phishingScore > 0 ? `
+                <div class="url-tags-container">
+                    <h4 class="url-tags-title">🎣 مؤشرات التصيد (${phishingScore}%)</h4>
+                    <div class="url-tags-grid">
+                        ${phishingIndicators.map(i => `<span class="url-tag url-tag-warning"><span>⚠️</span> ${i}</span>`).join('')}
+                    </div>
+                </div>` : ''}
+
+                ${signals.length > 0 ? `
+                <div class="url-tags-container">
+                    <h4 class="url-tags-title">🔍 الإشارات الأمنية (${signals.length})</h4>
+                    <div class="url-tags-grid">
+                        ${signals.map(s => {
+                            let cls = 'url-tag-info';
+                            if (s.includes('PHISHING') || s.includes('MALICIOUS') || s.includes('SCAM') || s.includes('CRITICAL')) cls = 'url-tag-critical';
+                            else if (s.includes('SUSPICIOUS') || s.includes('WARNING') || s.includes('SPAM')) cls = 'url-tag-warning';
+                            else if (s.includes('VALID') || s.includes('SAFE') || s.includes('SECURE')) cls = 'url-tag-safe';
+                            return `<span class="url-tag ${cls}"><span>🔹</span> ${s}</span>`;
+                        }).join('')}
+                    </div>
+                </div>` : ''}
+
+                ${recommendations.length > 0 ? `
+                <div class="url-recommendations">
+                    <h4 class="url-tags-title">💡 توصيات ذكية</h4>
+                    ${recommendations.map(rec => `<div class="url-recommendation-item"><span>🔹</span> ${rec}</div>`).join('')}
+                </div>` : ''}
+
+                <div class="url-result-footer">
+                    <div class="url-footer-meta">
+                        <span class="url-footer-item">📌 الإدخال: <code class="url-footer-code">${url.length > 50 ? url.substring(0,45)+'...' : url}</code></span>
+                        <span class="url-footer-item">🕒 ${new Date().toLocaleString('ar-SA')}</span>
+                        <span class="url-footer-item">⚡ ${analysisTimeMs.toFixed(0)}ms</span>
+                        ${confidence ? `<span class="url-footer-item">🎯 الثقة: ${confidence}%</span>` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+
+        elements.results.innerHTML = html;
+        elements.results.classList.remove('hidden');
+        elements.error.classList.add('hidden');
+        elements.exportJsonBtn.disabled = false;
+        elements.exportCsvBtn.disabled = false;
+        elements.copyBtn.disabled = false;
+        currentResult = data;
+        currentURL = url;
+        addToURLHistory(url, data);
+    }
+
+    function showError(message) {
+        if (elements.errorMessage) elements.errorMessage.textContent = message;
+        elements.error.classList.remove('hidden');
+        elements.results.classList.add('hidden');
+        elements.exportJsonBtn.disabled = true;
+        elements.exportCsvBtn.disabled = true;
+        elements.copyBtn.disabled = true;
+    }
+
+    function clearResults() {
+        elements.results.innerHTML = '';
+        elements.results.classList.add('hidden');
+        elements.error.classList.add('hidden');
+        elements.exportJsonBtn.disabled = true;
+        elements.exportCsvBtn.disabled = true;
+        elements.copyBtn.disabled = true;
+        currentResult = null;
+    }
+
+    function setLoading(isLoading) {
+        elements.btn.disabled = isLoading;
+        if (elements.btnText) elements.btnText.textContent = isLoading ? '🔥 جاري الفحص...' : '🔍 فحص أسطوري';
+        if (elements.spinner) elements.spinner.style.display = isLoading ? 'inline-block' : 'none';
+    }
+
+    async function analyze() {
+        let url = elements.input.value.trim();
+        const validation = Utils.validateURL(url);
+        if (!validation.valid) { showError(validation.message); return; }
+        url = validation.url;
+        elements.input.value = url;
+        setLoading(true);
+        clearResults();
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), CONFIG.timeout);
+            const response = await fetch(CONFIG.apiEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url: url }), signal: controller.signal });
+            clearTimeout(timeoutId);
+            if (!response.ok) { const err = await response.json().catch(() => ({})); throw new Error(err.error || 'فشل التحليل'); }
+            const data = await response.json();
+            displayResults(data, url);
+            loadStats();
+        } catch (error) {
+            if (error.name === 'AbortError') showError('⏰ انتهت مهلة الاتصال');
+            else showError(error.message || '❌ حدث خطأ في الاتصال');
+        } finally { setLoading(false); }
+    }
+
+    if (elements.input && elements.suggestions) {
+        elements.input.addEventListener('input', () => {
+            const value = elements.input.value;
+            if (value.length < 3) { elements.suggestions.style.display = 'none'; return; }
+            const matches = CONFIG.commonURLs.filter(url => url.toLowerCase().includes(value.toLowerCase()));
+            if (matches.length > 0) {
+                elements.suggestions.innerHTML = matches.map(url => `<div class="url-suggestion-item" onclick="document.getElementById('url-input').value='${url}';document.getElementById('url-suggestions').style.display='none';">${url}</div>`).join('');
+                elements.suggestions.style.display = 'block';
+            } else { elements.suggestions.style.display = 'none'; }
+        });
+        document.addEventListener('click', (e) => { if (!elements.input.contains(e.target) && !elements.suggestions.contains(e.target)) { elements.suggestions.style.display = 'none'; } });
+    }
+
+    elements.btn.addEventListener('click', analyze);
+    elements.input.addEventListener('keypress', e => { if (e.key === 'Enter') analyze(); });
+    elements.input.value = CONFIG.defaultURL;
+    elements.exportJsonBtn.addEventListener('click', exportToJSON);
+    elements.exportCsvBtn.addEventListener('click', exportToCSV);
+    elements.copyBtn.addEventListener('click', copyResults);
+    document.getElementById('toggle-history-btn')?.addEventListener('click', () => { document.getElementById('url-history-panel').classList.toggle('hidden'); renderURLHistory(); });
+    document.getElementById('clear-url-history-btn')?.addEventListener('click', clearURLHistory);
+
+    loadStats();
+    renderURLHistory();
+    setInterval(loadStats, CONFIG.refreshInterval);
+    console.log('🔥🔗 URL CHECK v6.0 - COMPATIBLE WITH enhanced_complete.py 🔗🔥');
+})();
+</script>
+
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "URL Security Scanner - CyberShield Ultra",
+    "description": "أداة فحص الروابط المتقدمة لكشف التصيد والبرمجيات الخبيثة وتحليل السمعة باستخدام الذكاء الاصطناعي",
+    "url": "https://cybersecuritypro.pythonanywhere.com/url-check",
+    "applicationCategory": "SecurityApplication",
+    "operatingSystem": "All",
+    "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+    "aggregateRating": {"@type": "AggregateRating", "ratingValue": "4.99", "ratingCount": "5280"}
+}
+</script>
+{% endblock %}

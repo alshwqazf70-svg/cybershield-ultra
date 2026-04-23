@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم الأسطورية | CyberShield Ultra</title>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', 'Tahoma', sans-serif;
+            background: linear-gradient(135deg, #0a0e1a 0%, #0d111f 50%, #0a0e1a 100%);
+            min-height: 100vh;
+            color: #ffffff;
+            padding: 20px;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(circle at 20% 80%, rgba(0, 212, 255, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(138, 43, 226, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(255, 215, 0, 0.02) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* الهيدر */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 30px;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            font-weight: 800;
+            background: linear-gradient(135deg, #00d4ff, #8a2be2, #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #a0aec0;
+            font-size: 1.1em;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .date-filter {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px 15px;
+            border-radius: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .date-filter input {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 25px;
+            font-family: inherit;
+        }
+
+        .date-filter button {
+            background: linear-gradient(135deg, #00d4ff, #8a2be2);
+            border: none;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .date-filter button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 212, 255, 0.2);
+        }
+
+        .refresh-btn {
+            background: linear-gradient(135deg, #00d4ff, #8a2be2);
+            border: none;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.2);
+        }
+
+        .refresh-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(0, 212, 255, 0.3);
+        }
+
+        .export-btn {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            border: none;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        /* بطاقات الإحصائيات */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 25px;
+            padding: 25px 15px;
+            text-align: center;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(0, 212, 255, 0.3);
+        }
+
+        .stat-icon {
+            font-size: 2.2em;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #00d4ff, #8a2be2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-value {
+            font-size: 2.2em;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff, #e0e0e0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            color: #a0aec0;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        .stat-trend {
+            margin-top: 8px;
+            font-size: 0.8em;
+            color: #00ff88;
+        }
+
+        /* الرسوم البيانية */
+        .charts-row {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .chart-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 25px;
+            padding: 25px;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .chart-card h3 {
+            margin-bottom: 20px;
+            color: #00d4ff;
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        canvas { max-height: 250px; }
+
+        /* جداول */
+        .tables-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .table-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 25px;
+            padding: 25px;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .table-card h3 {
+            margin-bottom: 20px;
+            color: #00d4ff;
+            font-size: 1.2em;
+        }
+
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px; text-align: right; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+        th { color: #8a2be2; font-weight: 600; font-size: 0.9em; }
+        td { color: #c0c0c0; font-size: 0.9em; }
+
+        .progress-bar {
+            height: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00d4ff, #8a2be2);
+            border-radius: 10px;
+        }
+
+        /* سجل الجلسات */
+        .sessions-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 25px;
+            padding: 25px;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            margin-bottom: 30px;
+        }
+
+        .sessions-card h3 {
+            margin-bottom: 20px;
+            color: #00d4ff;
+            font-size: 1.3em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .session-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 15px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            transition: all 0.3s;
+        }
+
+        .session-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(0, 212, 255, 0.2);
+        }
+
+        .session-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 15px;
+            font-size: 1.2em;
+            background: linear-gradient(135deg, #00d4ff20, #8a2be220);
+        }
+
+        .session-info { flex: 1; }
+        .session-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .session-location { font-weight: 600; color: #fff; }
+        .session-time { color: #a0aec0; font-size: 0.8em; }
+        .session-details {
+            display: flex;
+            gap: 15px;
+            color: #a0aec0;
+            font-size: 0.8em;
+            flex-wrap: wrap;
+            margin-bottom: 5px;
+        }
+        .session-tools {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 8px;
+        }
+        .tool-badge {
+            background: linear-gradient(135deg, #00d4ff30, #8a2be230);
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.7em;
+            color: #00d4ff;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #a0aec0;
+            font-size: 0.9em;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #a0aec0;
+        }
+        .loading i {
+            font-size: 2.5em;
+            color: #00d4ff;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            text-align: center;
+            padding: 40px;
+            color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.1);
+            border-radius: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .charts-row, .tables-row { grid-template-columns: 1fr; }
+            .header h1 { font-size: 1.5em; }
+            .session-header { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- الهيدر -->
+        <div class="header">
+            <h1>
+                <i class="fas fa-shield-alt"></i>
+                CyberShield Ultra - لوحة التحكم الأسطورية
+                <i class="fas fa-crown" style="color: #ffd700; -webkit-text-fill-color: #ffd700;"></i>
+            </h1>
+            <p>🌍 94 موقعاً | 🛠️ 17 أداة | 🤖 بوت ذكي V8.1 | <span id="syncStatus"></span></p>
+
+            <div class="controls">
+                <div class="date-filter">
+                    <input type="date" id="dateFrom" value="">
+                    <span>إلى</span>
+                    <input type="date" id="dateTo" value="">
+                    <button onclick="applyDateFilter()">
+                        <i class="fas fa-filter"></i> تصفية
+                    </button>
+                    <button onclick="resetDateFilter()">
+                        <i class="fas fa-undo"></i>
+                    </button>
+                </div>
+                <button class="refresh-btn" onclick="refreshData()">
+                    <i class="fas fa-sync-alt"></i>
+                    تحديث البيانات
+                </button>
+                <button class="export-btn" onclick="exportData()">
+                    <i class="fas fa-download"></i>
+                    تصدير CSV
+                </button>
+            </div>
+        </div>
+
+        <!-- بطاقات الإحصائيات -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-users"></i></div>
+                <div class="stat-value" id="totalSessions">0</div>
+                <div class="stat-label">إجمالي الجلسات</div>
+                <div class="stat-trend" id="todaySessions">- اليوم</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-flask"></i></div>
+                <div class="stat-value" id="totalTests">0</div>
+                <div class="stat-label">إجمالي الفحوصات</div>
+                <div class="stat-trend" id="todayTests">- اليوم</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-file-alt"></i></div>
+                <div class="stat-value" id="totalPages">0</div>
+                <div class="stat-label">إجمالي الصفحات</div>
+                <div class="stat-trend" id="todayPages">- اليوم</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-globe"></i></div>
+                <div class="stat-value" id="totalLocations">0</div>
+                <div class="stat-label">موقع جغرافي</div>
+                <div class="stat-trend">🌍 حول العالم</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-tools"></i></div>
+                <div class="stat-value" id="totalToolsUsed">0</div>
+                <div class="stat-label">أداة مستخدمة</div>
+                <div class="stat-trend">من أصل 17</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-play-circle"></i></div>
+                <div class="stat-value" id="totalRuns">0</div>
+                <div class="stat-label">تشغيلة كلية</div>
+                <div class="stat-trend" id="lastRunTime">⏰ انتظار</div>
+            </div>
+        </div>
+
+        <!-- الرسوم البيانية -->
+        <div class="charts-row">
+            <div class="chart-card">
+                <h3><i class="fas fa-chart-line"></i> إحصائيات الفترة المحددة</h3>
+                <canvas id="mainChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h3><i class="fas fa-trophy"></i> أكثر الأدوات استخداماً</h3>
+                <canvas id="toolsChart"></canvas>
+            </div>
+        </div>
+
+        <!-- جداول -->
+        <div class="tables-row">
+            <div class="table-card">
+                <h3><i class="fas fa-map-marker-alt"></i> أكثر المواقع زيارة</h3>
+                <table id="locationsTable">
+                    <thead>
+                        <tr><th>#</th><th>الموقع</th><th>الزيارات</th><th>النسبة</th></tr>
+                    </thead>
+                    <tbody id="locationsTableBody"></tbody>
+                </table>
+            </div>
+            <div class="table-card">
+                <h3><i class="fas fa-chart-pie"></i> توزيع المناطق</h3>
+                <table id="regionsTable">
+                    <thead>
+                        <tr><th>المنطقة</th><th>الزيارات</th><th>النسبة</th></tr>
+                    </thead>
+                    <tbody id="regionsTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- سجل الجلسات -->
+        <div class="sessions-card">
+            <h3>
+                <span><i class="fas fa-history"></i> آخر 20 جلسة</span>
+                <span style="font-size: 0.8em;" id="sessionCount"></span>
+            </h3>
+            <div id="sessionsList">
+                <div class="loading"><i class="fas fa-spinner"></i><p>جاري تحميل البيانات...</p></div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>🛡️ CyberShield Ultra V8.1 | <span id="dateRangeDisplay"></span> | <i class="fas fa-heart" style="color: #ff6b6b;"></i> Malek</p>
+        </div>
+    </div>
+
+    <script>
+        let mainChart, toolsChart;
+        let statsData = null;
+
+        const regionEmojis = {
+            'arab': '🇸🇦', 'americas': '🌎', 'europe': '🇪🇺',
+            'asia': '🌏', 'africa': '🌍', 'pacific': '🇦🇺', 'unknown': '📍'
+        };
+
+        const regionNames = {
+            'arab': 'العالم العربي', 'americas': 'الأمريكتين', 'europe': 'أوروبا',
+            'asia': 'آسيا', 'africa': 'أفريقيا', 'pacific': 'أوقيانوسيا', 'unknown': 'أخرى'
+        };
+
+        // تهيئة التواريخ الافتراضية (آخر 30 يوم)
+        function initDates() {
+            const today = new Date();
+            const thirtyDaysAgo = new Date(today);
+            thirtyDaysAgo.setDate(today.getDate() - 30);
+
+            document.getElementById('dateFrom').value = thirtyDaysAgo.toISOString().split('T')[0];
+            document.getElementById('dateTo').value = today.toISOString().split('T')[0];
+        }
+
+        function applyDateFilter() {
+            refreshData();
+        }
+
+        function resetDateFilter() {
+            initDates();
+            refreshData();
+        }
+
+        async function refreshData() {
+            const from = document.getElementById('dateFrom').value;
+            const to = document.getElementById('dateTo').value;
+
+            // إظهار مؤشر التحميل
+            document.getElementById('sessionsList').innerHTML = '<div class="loading"><i class="fas fa-spinner"></i><p>جاري تحميل البيانات...</p></div>';
+
+            try {
+                const url = `/malek-dashboard/api/stats?from=${from}&to=${to}`;
+                const response = await fetch(url);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                statsData = await response.json();
+                updateUI();
+
+                document.getElementById('dateRangeDisplay').textContent =
+                    `${statsData.date_range.from} - ${statsData.date_range.to}`;
+
+                // تحديث حالة المزامنة
+                document.getElementById('syncStatus').innerHTML = '<i class="fas fa-check-circle" style="color: #00ff88;"></i> متزامن';
+
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('sessionsList').innerHTML =
+                    '<div class="error-message"><i class="fas fa-exclamation-triangle"></i><p>خطأ في تحميل البيانات</p></div>';
+                document.getElementById('syncStatus').innerHTML = '<i class="fas fa-exclamation-circle" style="color: #ff6b6b;"></i> خطأ في الاتصال';
+            }
+        }
+
+        function updateUI() {
+            if (!statsData) return;
+
+            // تحديث البطاقات
+            document.getElementById('totalSessions').textContent = statsData.total_stats.sessions.toLocaleString();
+            document.getElementById('totalTests').textContent = statsData.total_stats.tests.toLocaleString();
+            document.getElementById('totalPages').textContent = statsData.total_stats.pages.toLocaleString();
+            document.getElementById('totalLocations').textContent = statsData.total_stats.locations_count;
+            document.getElementById('totalToolsUsed').textContent = statsData.total_stats.tools_count;
+            document.getElementById('totalRuns').textContent = statsData.total_stats.runs.toLocaleString();
+
+            // تحديث جلسات اليوم (من آخر يوم في البيانات)
+            if (statsData.sessions && statsData.sessions.length > 0) {
+                const lastDaySessions = statsData.sessions[statsData.sessions.length - 1];
+                const lastDayTests = statsData.tests[statsData.tests.length - 1];
+                const lastDayPages = statsData.pages[statsData.pages.length - 1];
+                document.getElementById('todaySessions').innerHTML = `+${lastDaySessions} اليوم`;
+                document.getElementById('todayTests').innerHTML = `+${lastDayTests} اليوم`;
+                document.getElementById('todayPages').innerHTML = `+${lastDayPages} اليوم`;
+            }
+
+            // آخر وقت تشغيل
+            if (statsData.recent_sessions && statsData.recent_sessions.length > 0) {
+                const lastSession = statsData.recent_sessions[0];
+                const lastDate = new Date(lastSession.timestamp);
+                document.getElementById('lastRunTime').innerHTML = `🕐 ${lastDate.toLocaleTimeString('ar-SA')}`;
+            }
+
+            updateMainChart();
+            updateToolsChart();
+            updateLocationsTable();
+            updateRegionsTable();
+            updateSessionsList();
+        }
+
+        function updateMainChart() {
+            const ctx = document.getElementById('mainChart').getContext('2d');
+            if (mainChart) mainChart.destroy();
+
+            if (!statsData.dates || statsData.dates.length === 0) {
+                return;
+            }
+
+            mainChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: statsData.dates,
+                    datasets: [
+                        {
+                            label: 'الجلسات',
+                            data: statsData.sessions,
+                            borderColor: '#00d4ff',
+                            backgroundColor: 'rgba(0, 212, 255, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            pointRadius: 3,
+                            pointHoverRadius: 6
+                        },
+                        {
+                            label: 'الفحوصات',
+                            data: statsData.tests,
+                            borderColor: '#8a2be2',
+                            backgroundColor: 'rgba(138, 43, 226, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            pointRadius: 3,
+                            pointHoverRadius: 6
+                        },
+                        {
+                            label: 'الصفحات',
+                            data: statsData.pages,
+                            borderColor: '#ffd700',
+                            backgroundColor: 'rgba(255, 215, 0, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            pointRadius: 3,
+                            pointHoverRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { labels: { color: '#a0aec0' } },
+                        tooltip: { mode: 'index', intersect: false }
+                    },
+                    scales: {
+                        x: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#a0aec0', rotation: -45 } },
+                        y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#a0aec0', beginAtZero: true } }
+                    }
+                }
+            });
+        }
+
+        function updateToolsChart() {
+            const ctx = document.getElementById('toolsChart').getContext('2d');
+            if (toolsChart) toolsChart.destroy();
+
+            if (!statsData.top_tools || statsData.top_tools.length === 0) {
+                return;
+            }
+
+            const labels = statsData.top_tools.slice(0, 10).map(t => t[0]);
+            const data = statsData.top_tools.slice(0, 10).map(t => t[1]);
+
+            const colors = ['#00d4ff', '#8a2be2', '#ffd700', '#00ff88', '#ff6b6b', '#ff9ff3', '#feca57', '#48dbfb', '#ff9ff3', '#54a0ff'];
+
+            toolsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'عدد الاستخدامات',
+                        data: data,
+                        backgroundColor: colors.slice(0, data.length),
+                        borderRadius: 10,
+                        barPercentage: 0.8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { backgroundColor: 'rgba(0,0,0,0.8)' }
+                    },
+                    scales: {
+                        x: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#a0aec0' } },
+                        y: { grid: { display: false }, ticks: { color: '#a0aec0', font: { size: 10 } } }
+                    }
+                }
+            });
+        }
+
+        function updateLocationsTable() {
+            const tbody = document.getElementById('locationsTableBody');
+            const total = statsData.total_stats.sessions || 1;
+
+            if (!statsData.top_locations || statsData.top_locations.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4">لا توجد بيانات</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = statsData.top_locations.slice(0, 15).map((loc, index) => {
+                const percentage = (loc[1] / total * 100).toFixed(1);
+                return `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${loc[0]}</td>
+                        <td>${loc[1].toLocaleString()}</td>
+                        <td>
+                            ${percentage}%
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${percentage}%"></div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function updateRegionsTable() {
+            const tbody = document.getElementById('regionsTableBody');
+            const regionCounts = {};
+
+            // حساب المناطق من جميع الجلسات في التاريخ (من top_locations)
+            // هذه طريقة أكثر دقة من الاعتماد على recent_sessions فقط
+            if (statsData.map_data) {
+                statsData.map_data.forEach(loc => {
+                    // تحديد المنطقة من اسم الموقع (تقريبي)
+                    let region = 'unknown';
+                    const arabKeywords = ['السعودية', 'الإمارات', 'مصر', 'قطر', 'الكويت', 'عمان', 'البحرين', 'الأردن', 'لبنان', 'المغرب', 'تونس', 'الجزائر', 'السودان', 'ليبيا', 'العراق', 'سوريا', 'اليمن', 'فلسطين'];
+                    const europeKeywords = ['لندن', 'باريس', 'برلين', 'مدريد', 'روما', 'أمستردام', 'بروكسل', 'فيينا', 'ستوكهولم', 'أوسلو', 'كوبنهاغن', 'وارسو', 'براغ', 'بودابست', 'أثينا', 'إسطنبول', 'موسكو'];
+                    const asiaKeywords = ['طوكيو', 'سيول', 'بكين', 'سنغافورة', 'مومباي', 'بانكوك', 'جاكرتا', 'هونغ كونغ', 'تايبيه'];
+
+                    if (arabKeywords.some(k => loc.name.includes(k))) region = 'arab';
+                    else if (europeKeywords.some(k => loc.name.includes(k))) region = 'europe';
+                    else if (asiaKeywords.some(k => loc.name.includes(k))) region = 'asia';
+                    else if (loc.name.includes('أمريكا') || loc.name.includes('كندا') || loc.name.includes('المكسيك') || loc.name.includes('البرازيل') || loc.name.includes('الأرجنتين')) region = 'americas';
+                    else if (loc.name.includes('أفريقيا') || loc.name.includes('جنوب أفريقيا') || loc.name.includes('نيجيريا') || loc.name.includes('كينيا')) region = 'africa';
+                    else if (loc.name.includes('أستراليا') || loc.name.includes('نيوزيلندا')) region = 'pacific';
+
+                    regionCounts[region] = (regionCounts[region] || 0) + loc.count;
+                });
+            }
+
+            const total = statsData.total_stats.sessions || 1;
+
+            if (Object.keys(regionCounts).length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3">لا توجد بيانات</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = Object.entries(regionCounts)
+                .sort((a, b) => b[1] - a[1])
+                .map(([region, count]) => {
+                    const percentage = (count / total * 100).toFixed(1);
+                    return `
+                        <tr>
+                            <td>${regionEmojis[region] || '📍'} ${regionNames[region] || region}</td>
+                            <td>${count.toLocaleString()}</td>
+                            <td>
+                                ${percentage}%
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: ${percentage}%"></div>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+        }
+
+        function updateSessionsList() {
+            const container = document.getElementById('sessionsList');
+
+            if (!statsData.recent_sessions || statsData.recent_sessions.length === 0) {
+                container.innerHTML = '<div class="loading"><p>لا توجد جلسات بعد</p></div>';
+                document.getElementById('sessionCount').innerHTML = '';
+                return;
+            }
+
+            document.getElementById('sessionCount').innerHTML = `(عرض ${statsData.recent_sessions.length} من ${statsData.total_stats.sessions.toLocaleString()})`;
+
+            container.innerHTML = statsData.recent_sessions.map(session => {
+                const date = new Date(session.timestamp);
+                const timeStr = date.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+                const dateStr = date.toLocaleDateString('ar-SA');
+
+                const toolsHtml = (session.tools || []).map(t =>
+                    `<span class="tool-badge">${t}</span>`
+                ).join('') || '<span class="tool-badge" style="opacity:0.5;">لا توجد اختبارات</span>';
+
+                const minutes = Math.floor(session.duration / 60);
+                const seconds = session.duration % 60;
+
+                return `
+                    <div class="session-item">
+                        <div class="session-icon">${regionEmojis[session.region] || '📍'}</div>
+                        <div class="session-info">
+                            <div class="session-header">
+                                <span class="session-location">${session.location}</span>
+                                <span class="session-time">${dateStr} ${timeStr}</span>
+                            </div>
+                            <div class="session-details">
+                                <span><i class="fas fa-mobile-alt"></i> ${session.device.substring(0, 20)}</span>
+                                <span><i class="fas fa-file-alt"></i> ${session.pages} صفحة</span>
+                                <span><i class="fas fa-flask"></i> ${session.tests} فحص</span>
+                                <span><i class="fas fa-clock"></i> ${minutes}:${seconds.toString().padStart(2, '0')}</span>
+                            </div>
+                            <div class="session-tools">${toolsHtml}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function exportData() {
+            if (!statsData) return;
+
+            let csv = "التاريخ,الموقع,الجهاز,الصفحات,الفحوصات,المدة,الأدوات\n";
+
+            statsData.recent_sessions.forEach(session => {
+                const date = new Date(session.timestamp).toLocaleDateString('ar-SA');
+                const tools = (session.tools || []).join('|');
+                csv += `"${date}","${session.location}","${session.device}",${session.pages},${session.tests},${session.duration},"${tools}"\n`;
+            });
+
+            const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.href = url;
+            link.setAttribute("download", `cybershield_stats_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        // بدء التشغيل
+        document.addEventListener('DOMContentLoaded', () => {
+            initDates();
+            refreshData();
+            setInterval(refreshData, 60000); // تحديث كل دقيقة
+        });
+    </script>
+</body>
+</html>

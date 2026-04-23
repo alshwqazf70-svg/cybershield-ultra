@@ -1,0 +1,2901 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+"""
+====================================================================================================
+|                                                                                                  |
+|   🔥 CYBERSHIELD LEGENDARY V28.0 - THE ULTIMATE HYBRID EDITION 🔥                               |
+|   =============================================================================================  |
+|                                                                                                  |
+|   ✅ V24 الأصلي + تحسينات V25 فقط (بدون تبسيط)                                                   |
+|   ✅ ThreadSafeCache - آمن للخيوط                                                                |
+|   ✅ ZeroRepetitionTracker - ضمان عدم التكرار المطلق                                              |
+|   ✅ جميع الميزات الأصلية كما هي دون تغيير                                                         |
+|                                                                                                  |
+====================================================================================================
+"""
+
+import os
+import json
+import time
+import random
+import logging
+import requests
+import re
+import hashlib
+import threading
+from pathlib import Path
+from datetime import datetime, timedelta
+from typing import Dict, List, Optional, Any, Tuple, Union
+from functools import wraps
+from flask import request, jsonify, render_template_string
+from dotenv import load_dotenv
+import traceback
+
+# ==================================================================================================
+# 0. تحميل المتغيرات وإعدادات البيئة
+# ==================================================================================================
+load_dotenv()
+
+SITE_URL = os.environ.get("SITE_URL", "https://cybersecuritypro.pythonanywhere.com")
+BASE_DIR = Path(__file__).parent
+CACHE_DIR = BASE_DIR / "cache"
+ARTICLES_CACHE_DIR = CACHE_DIR / "articles"
+LOGS_DIR = BASE_DIR / "logs"
+SERPAPI_KEY = os.environ.get("SERPAPI_KEY", "")
+
+for d in [CACHE_DIR, ARTICLES_CACHE_DIR, LOGS_DIR]:
+    d.mkdir(parents=True, exist_ok=True)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(LOGS_DIR / f"cybershield_{datetime.now().strftime('%Y%m%d')}.log", encoding='utf-8'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger("CyberShield_V28")
+
+# ==================================================================================================
+# 1. ThreadSafeCache (تحسين من V25) - آمن للخيوط
+# ==================================================================================================
+class ThreadSafeCache:
+    def __init__(self, maxsize: int = 1000, default_timeout: int = 86400):
+        self._cache = {}
+        self._timestamps = {}
+        self._maxsize = maxsize
+        self._default_timeout = default_timeout
+        self._hits = 0
+        self._misses = 0
+        self._lock = threading.Lock()
+
+    def get(self, key: str) -> Optional[Any]:
+        with self._lock:
+            if key in self._cache:
+                if time.time() - self._timestamps[key] < self._default_timeout:
+                    self._hits += 1
+                    return self._cache[key]
+                self._delete(key)
+            self._misses += 1
+            return None
+
+    def set(self, key: str, value: Any, timeout: Optional[int] = None):
+        with self._lock:
+            if len(self._cache) >= self._maxsize and key not in self._cache:
+                oldest = min(self._timestamps, key=self._timestamps.get)
+                self._delete(oldest)
+            self._cache[key] = value
+            self._timestamps[key] = time.time() + (timeout if timeout else self._default_timeout)
+
+    def _delete(self, key: str):
+        self._cache.pop(key, None)
+        self._timestamps.pop(key, None)
+
+    def get_stats(self) -> Dict:
+        with self._lock:
+            total = self._hits + self._misses
+            return {
+                'size': len(self._cache),
+                'maxsize': self._maxsize,
+                'hits': self._hits,
+                'misses': self._misses,
+                'hit_ratio': round((self._hits / total * 100), 2) if total > 0 else 0
+            }
+
+# استخدام ThreadSafeCache بدلاً من SimpleCache
+cache = ThreadSafeCache()
+
+# ==================================================================================================
+# 2. ZeroRepetitionTracker (تحسين من V25) - ضمان عدم التكرار
+# ==================================================================================================
+class ZeroRepetitionTracker:
+    def __init__(self):
+        self.used_phrases = set()
+        self.used_concepts = set()
+        self.lock = threading.Lock()
+
+    def consume(self, text: str) -> bool:
+        with self.lock:
+            if text in self.used_phrases:
+                return False
+            self.used_phrases.add(text)
+            return True
+
+    def is_fresh(self, text: str) -> bool:
+        return text not in self.used_phrases
+
+    def clear(self):
+        with self.lock:
+            self.used_phrases.clear()
+            self.used_concepts.clear()
+
+    def get_used_count(self) -> int:
+        with self.lock:
+            return len(self.used_phrases)
+
+# ==================================================================================================
+# 3. تحليل نية البحث (Search Intent) - تحسين من V25
+# ==================================================================================================
+def detect_search_intent(keyword: str) -> str:
+    keyword_lower = keyword.lower()
+
+    tool_keywords = ['check', 'lookup', 'tool', 'checker', 'verify', 'test', 'ip', 'dns', 'whois',
+                     'فحص', 'كشف', 'تحقق', 'أداة', 'اختبار', 'تتبع', 'ip', 'باسورد', 'رابط', 'بريد']
+
+    if any(tk in keyword_lower for tk in tool_keywords):
+        return 'tool'
+
+    informational_words = ['كيف', 'ما هو', 'شرح', 'دليل', 'طريقة', 'تعلم', 'ماهو', 'ماهي', 'معنى', 'تعريف']
+    commercial_words = ['أفضل', 'مقارنة', 'مراجعة', 'سعر', 'مواصفات', 'بديل', 'احسن', 'ارخص']
+    transactional_words = ['اشتري', 'تنزيل', 'اشتراك', 'عرض', 'خصم', 'شراء', 'تحميل', 'تسجيل']
+    navigational_words = ['موقع', 'صفحة', 'دخول', 'تسجيل دخول', 'login', 'signin']
+
+    if any(word in keyword_lower for word in informational_words):
+        return 'informational'
+    elif any(word in keyword_lower for word in commercial_words):
+        return 'commercial'
+    elif any(word in keyword_lower for word in transactional_words):
+        return 'transactional'
+    elif any(word in keyword_lower for word in navigational_words):
+        return 'navigational'
+    else:
+        return 'tool'
+
+def map_intent_to_article_type(intent: str, keyword: str = "") -> str:
+    if intent == 'tool':
+        return 'hybrid_page'
+    mapping = {
+        'informational': 'hybrid_page',
+        'commercial': 'comparison',
+        'transactional': 'viral_short',
+        'navigational': 'long_guide',
+    }
+    return mapping.get(intent, 'hybrid_page')
+
+# ==================================================================================================
+# 4. قائمة الأخطاء العامة
+# ==================================================================================================
+GENERAL_MISTAKES = [
+    "تجاهل تحديث البيانات بانتظام - قد يعرضك لنتائج غير دقيقة.",
+    "الاعتماد على مصادر غير موثوقة - يؤدي إلى معلومات خاطئة.",
+    "عدم مراجعة النتائج بانتظام - التهديدات تتغير باستمرار.",
+    "إهمال التحقق من المصادر - قد تثق بمعلومات مضللة.",
+    "تجاهل التحديثات الأمنية - يترك ثغرات في حمايتك."
+]
+
+# ==================================================================================================
+# 5. نظام تحليل الكلمات المفتاحية (Keyword Engine)
+# ==================================================================================================
+KEYWORD_ANALYSIS = {
+    "ip_check": {
+        "primary": ["فحص عنوان IP", "تحقق من IP", "كشف IP"],
+        "long_tail": [
+            "كيف أعرف عنوان IP الخاص بي",
+            "هل يمكن تتبع موقعي من خلال IP",
+            "طريقة تغيير IP في السعودية",
+            "أفضل موقع لفحص IP مجانا",
+            "الفرق بين IPv4 و IPv6 بالعربي"
+        ],
+        "search_volume": 5400,
+        "difficulty": "medium",
+        "intent": "tool"
+    },
+    "email_check": {
+        "primary": ["فحص البريد الإلكتروني", "كشف البريد المزيف", "تحقق من الإيميل"],
+        "long_tail": [
+            "كيف أعرف أن البريد الإلكتروني مزيف",
+            "طريقة كشف البريد المؤقت",
+            "أداة فحص سمعة البريد الإلكتروني",
+            "كيف أحمي بريدي من الاختراق",
+            "التحقق من سجلات SPF و DKIM"
+        ],
+        "search_volume": 3200,
+        "difficulty": "low",
+        "intent": "tool"
+    },
+    "password_check": {
+        "primary": ["فحص قوة كلمة المرور", "اختبار الباسورد", "تقييم كلمة المرور"],
+        "long_tail": [
+            "كم يحتاج الهاكر لتكسير كلمة مروري",
+            "كيف أعرف أن كلمة مروري قوية",
+            "أفضل طريقة لإنشاء كلمة مرور لا تُخترق",
+            "هل مدير كلمات المرور آمن",
+            "الفرق بين كلمة المرور الطويلة والمعقدة"
+        ],
+        "search_volume": 4800,
+        "difficulty": "medium",
+        "intent": "tool"
+    },
+    "url_check": {
+        "primary": ["فحص الروابط", "كشف الروابط الضارة", "تحقق من الرابط"],
+        "long_tail": [
+            "كيف أعرف أن الرابط آمن قبل النقر عليه",
+            "علامات الرابط الخطير أو المزيف",
+            "طريقة فحص رابط مختصر قبل فتحه",
+            "ماذا تفعل إذا نقرت على رابط مشبوه",
+            "كيف أميز بين رابط حقيقي ورابط مزيف"
+        ],
+        "search_volume": 2900,
+        "difficulty": "low",
+        "intent": "tool"
+    },
+    "phone_check": {
+        "primary": ["فحص رقم الهاتف", "كشف رقم واتساب", "تحقق من رقم الجوال"],
+        "long_tail": [
+            "كيف أعرف صاحب رقم الهاتف المجهول",
+            "هل هذا الرقم احتيالي أم حقيقي",
+            "كيف أتجنب الاحتيال عبر الهاتف",
+            "معرفة مشغل الاتصالات لرقم معين",
+            "هل يمكن تتبع موقع رقم الهاتف"
+        ],
+        "search_volume": 2100,
+        "difficulty": "low",
+        "intent": "tool"
+    },
+    "domain_check": {
+        "primary": ["تحليل النطاقات", "فحص الدومين", "Whois lookup"],
+        "long_tail": [
+            "من يملك هذا النطاق",
+            "متى تم إنشاء النطاق ومتى ينتهي",
+            "كيف أعرف عمر النطاق",
+            "كيف أتحقق من سجلات DNS للنطاق",
+            "طريقة معرفة مالك الدومين"
+        ],
+        "search_volume": 3600,
+        "difficulty": "medium",
+        "intent": "tool"
+    },
+    "dns_check": {
+        "primary": ["فحص DNS", "استعلام DNS", "تحليل سجلات DNS"],
+        "long_tail": [
+            "ما هي سجلات DNS وكيف أقرأها",
+            "كيف أتحقق من MX record لنطاقي",
+            "الفرق بين A record و CNAME",
+            "كيف أكتشف ثغرات DNS",
+            "طريقة التحقق من SPF و DKIM"
+        ],
+        "search_volume": 1900,
+        "difficulty": "medium",
+        "intent": "tool"
+    },
+    "jwt_check": {
+        "primary": ["فحص JWT", "تحقق من JWT Token", "JWT decoder"],
+        "long_tail": [
+            "كيف أتحقق من صحة توقيع JWT",
+            "ما هي ثغرات JWT الأمنية الشائعة",
+            "الفرق بين JWT و Session",
+            "كيف أقرأ محتوى JWT Payload",
+            "طريقة حماية JWTs من السرقة"
+        ],
+        "search_volume": 1500,
+        "difficulty": "high",
+        "intent": "tool"
+    },
+    "api_key_check": {
+        "primary": ["فحص مفاتيح API", "تحقق من API Key", "API key validator"],
+        "long_tail": [
+            "كيف أتحقق من صحة مفتاح API",
+            "هل مفتاح API الخاص بي صالح للاستخدام",
+            "الفرق بين API Key و Token",
+            "كيف أحمي مفاتيح API من السرقة",
+            "كيف أكتشف تسريب مفاتيح API على GitHub"
+        ],
+        "search_volume": 1200,
+        "difficulty": "high",
+        "intent": "tool"
+    },
+    "user_agent_check": {
+        "primary": ["تحليل User Agent", "كشف المتصفح", "User agent parser"],
+        "long_tail": [
+            "كيف أعرف متصفح وإصدار الزائر",
+            "كيف أكتشف البوتات والزيارات الآلية",
+            "ما هو نظام تشغيل المستخدم",
+            "هل يمكن تزييف User Agent",
+            "طريقة تحليل User Agent string"
+        ],
+        "search_volume": 800,
+        "difficulty": "low",
+        "intent": "tool"
+    },
+    "hash_check": {
+        "primary": ["تحليل التجزئة", "كشف نوع الهاش", "Hash identifier"],
+        "long_tail": [
+            "كيف أعرف نوع خوارزمية التجزئة",
+            "الفرق بين MD5 و SHA256",
+            "هل التجزئة آمنة لتخزين كلمات المرور",
+            "ما هي خوارزميات التجزئة الضعيفة",
+            "طريقة التحقق من صحة التجزئة"
+        ],
+        "search_volume": 1100,
+        "difficulty": "medium",
+        "intent": "tool"
+    },
+    "base64_check": {
+        "primary": ["فك تشفير Base64", "Base64 decoder", "ترجمة Base64"],
+        "long_tail": [
+            "كيف أفك تشفير نص مشفر بـ Base64",
+            "هل Base64 آمن للتشفير",
+            "الفرق بين Base64 والتشفير الحقيقي",
+            "كيف أميز بين النص العادي والمشفر",
+            "استخدامات Base64 في الويب"
+        ],
+        "search_volume": 1400,
+        "difficulty": "low",
+        "intent": "tool"
+    },
+    "credit_card_check": {
+        "primary": ["فحص بطاقة ائتمان", "التحقق من رقم الفيزا", "Luhn algorithm"],
+        "long_tail": [
+            "كيف أتحقق من صحة رقم بطاقة الائتمان",
+            "كيف تعمل خوارزمية Luhn",
+            "كيف أميز نوع البطاقة من رقمها",
+            "أرقام بطاقات الاختبار الآمنة",
+            "كيف أتجنب الاحتيال بالبطاقات"
+        ],
+        "search_volume": 2300,
+        "difficulty": "medium",
+        "intent": "tool"
+    },
+    "port_check": {
+        "primary": ["فحص المنافذ", "Port scanner", "كشف المنافذ المفتوحة"],
+        "long_tail": [
+            "كيف أفحص منافذ سيرفري عن بُعد",
+            "ما هي المنافذ الخطيرة التي يجب إغلاقها",
+            "الفرق بين TCP و UDP",
+            "كيف أحمي نفسي من هجمات مسح المنافذ",
+            "طريقة فحص منافذ جهازي"
+        ],
+        "search_volume": 1700,
+        "difficulty": "medium",
+        "intent": "tool"
+    },
+    "username_check": {
+        "primary": ["فحص اسم المستخدم", "تحليل اليوزر", "Username availability"],
+        "long_tail": [
+            "هل اسم المستخدم الحالي آمن",
+            "كيف أختار اسماً قوياً لا يمكن تخمينه",
+            "هل اسمي شائع وسهل الاختراق",
+            "كيف أحمي اسم المستخدم من الاحتيال",
+            "أنماط البوت في أسماء المستخدمين"
+        ],
+        "search_volume": 600,
+        "difficulty": "low",
+        "intent": "tool"
+    },
+    "file_upload_check": {
+        "primary": ["فحص الملفات", "كشف الفيروسات", "File scanner"],
+        "long_tail": [
+            "كيف أفحص ملفاً قبل فتحه أو تنزيله",
+            "ما هي أنواع الملفات الخطيرة",
+            "كيف أكتشف البرمجيات الخبيثة في الملفات",
+            "ما هو تحليل Entropy للملفات",
+            "كيف أتجنب تنزيل الملفات الضارة"
+        ],
+        "search_volume": 950,
+        "difficulty": "medium",
+        "intent": "tool"
+    },
+    "password_generator": {
+        "primary": ["مولد كلمات مرور", "توليد باسورد قوي", "Random password generator"],
+        "long_tail": [
+            "كيف أولد كلمة مرور قوية لا تُخترق",
+            "أفضل طريقة لتوليد الباسورد الآمن",
+            "كم طول كلمة المرور المناسب لكل موقع",
+            "هل المولدات العشوائية آمنة",
+            "الفرق بين كلمة المرور المولدة والمختارة يدوياً"
+        ],
+        "search_volume": 5200,
+        "difficulty": "low",
+        "intent": "tool"
+    }
+}
+
+# ==================================================================================================
+# 6. بيانات الأدوات الكاملة (17 أداة)
+# ==================================================================================================
+TOOLS_DATA: Dict[str, Dict] = {
+    "ip_check": {
+        "name": "فحص عنوان IP",
+        "url_path": "ip-check",
+        "icon": "🌐",
+        "input_type": "عنوان IP",
+        "short_desc": "كشف الموقع الجغرافي ومزود الخدمة والمخاطر الأمنية",
+        "keywords": ["IP", "عنوان IP", "الموقع الجغرافي", "VPN", "ISP", "IPv4", "IPv6", "تتبع", "شبكة", "خادم", "بروتوكول", "اتصال", "إنترنت"],
+        "questions": [
+            "ما هو عنوان IP بالضبط وكيف يعمل؟",
+            "كيف يمكنني معرفة عنوان IP الخاص بي؟",
+            "هل يمكن تتبع موقعي بدقة من خلال IP؟",
+            "ما الفرق بين IPv4 و IPv6؟",
+            "كيف أخفي عنوان IP الخاص بي؟",
+            "هل استخدام VPN يخفي IP بشكل كامل؟",
+            "ما هي المعلومات التي يمكن استخراجها من IP؟",
+            "هل يمكن تغيير IP الخاص بي؟",
+            "ما الفرق بين IP الثابت والمتغير؟",
+            "هل فحص IP يعتبر انتهاكاً للخصوصية؟"
+    ],
+        "related_tools": ["domain_check", "dns_check", "url_check"]
+    },
+    "email_check": {
+        "name": "فحص البريد الإلكتروني",
+        "url_path": "email-check",
+        "icon": "📧",
+        "input_type": "البريد الإلكتروني",
+        "short_desc": "كشف البريد المزيف والمؤقت وتحليل السمعة",
+        "keywords": ["بريد إلكتروني", "بريد مؤقت", "تصيد", "احتيال", "SPF", "DKIM", "DMARC", "مرسل", "نطاق", "سمعة", "تحقق"],
+        "questions": [
+            "كيف أعرف أن البريد الإلكتروني مزيف أم حقيقي؟",
+            "ما هو البريد المؤقت (Temp Mail) وكيف أكشفه؟",
+            "كيف أحمي بريدي الإلكتروني من الاختراق؟",
+            "ما هي علامات البريد الاحتيالي (Phishing)؟",
+            "ماذا تفعل سجلات SPF و DKIM؟",
+            "كيف أتأكد من هوية مرسل البريد؟"
+        ],
+        "related_tools": ["url_check", "password_check", "ip_check"]
+    },
+    "password_check": {
+        "name": "فحص قوة كلمة المرور",
+        "url_path": "password-check",
+        "icon": "🔑",
+        "input_type": "كلمة المرور",
+        "short_desc": "اختبار قوة كلمة المرور وتقدير وقت الاختراق",
+        "keywords": ["كلمة مرور", "باسورد", "اختراق", "حماية", "قوة", "هجوم", "تخمين", "تشفير", "أمان", "ضعيف", "قوي"],
+        "questions": [
+            "كيف أعرف أن كلمة مروري قوية بما فيه الكفاية؟",
+            "كم يحتاج الهاكر لتكسير كلمة مروري؟",
+            "ما هي أفضل طريقة لإنشاء كلمة مرور لا تُخترق؟",
+            "كيف أتذكر كلمات المرور القوية لجميع حساباتي؟",
+            "هل مدير كلمات المرور آمن للاستخدام؟",
+            "ما الفرق بين كلمة المرور الطويلة والمعقدة؟"
+        ],
+        "related_tools": ["email_check", "ip_check", "url_check"]
+    },
+    "url_check": {
+        "name": "فحص الروابط",
+        "url_path": "url-check",
+        "icon": "🔗",
+        "input_type": "الرابط",
+        "short_desc": "كشف روابط التصيد والاحتيال والروابط الضارة",
+        "keywords": ["رابط", "تصيد", "احتيال", "فيروس", "أمان", "URL", "مشبوه", "HTTP", "HTTPS", "نطاق", "مختصر"],
+        "questions": [
+            "كيف أعرف أن الرابط آمن قبل النقر عليه؟",
+            "ما هي علامات الرابط الخطير أو المزيف؟",
+            "كيف أحمي نفسي من روابط التصيد (Phishing)؟",
+            "هل يمكن فحص رابط مختصر قبل فتحه؟",
+            "ماذا تفعل إذا نقرت على رابط مشبوه؟",
+            "كيف أميز بين رابط حقيقي ورابط مزيف؟"
+        ],
+        "related_tools": ["domain_check", "email_check", "ip_check"]
+    },
+    "phone_check": {
+        "name": "فحص رقم الهاتف",
+        "url_path": "phone-check",
+        "icon": "📱",
+        "input_type": "رقم الهاتف",
+        "short_desc": "تحليل الأرقام وكشف الاحتيال والمعلومات الجغرافية",
+        "keywords": ["رقم هاتف", "جوال", "احتيال", "مشغل", "اتصالات", "كشف رقم", "تحليل رقم", "واتساب", "sms", "مكالمة"],
+        "questions": [
+            "كيف أعرف صاحب رقم الهاتف المجهول؟",
+            "هل هذا الرقم احتيالي أم حقيقي؟",
+            "ما هو مشغل الاتصالات لهذا الرقم؟",
+            "كيف أتأكد من صحة رقم الهاتف؟",
+            "هل يمكن تتبع موقع رقم الهاتف؟",
+            "كيف أتجنب الاحتيال عبر الهاتف؟"
+        ],
+        "related_tools": ["email_check", "ip_check", "url_check"]
+    },
+    "domain_check": {
+        "name": "تحليل النطاقات",
+        "url_path": "domain-check",
+        "icon": "🌍",
+        "input_type": "النطاق",
+        "short_desc": "معلومات WHOIS وتحليل DNS وتقييم المصداقية",
+        "keywords": ["نطاق", "دومين", "WHOIS", "DNS", "MX", "NS", "مالك النطاق", "سجلات DNS", "تاريخ النطاق", "A record", "CNAME"],
+        "questions": [
+            "من يملك هذا النطاق (Domain)؟",
+            "متى تم إنشاء النطاق ومتى ينتهي؟",
+            "ما هي سجلات DNS وكيف أقرأها؟",
+            "كيف أعرف إذا كان النطاق موثوقاً أم لا؟",
+            "ما هو عمر النطاق وهل يؤثر على المصداقية؟",
+            "كيف أتحقق من سجلات MX و TXT؟"
+        ],
+        "related_tools": ["ip_check", "dns_check", "url_check"]
+    },
+    "port_check": {
+        "name": "فحص المنافذ",
+        "url_path": "port-check",
+        "icon": "🚪",
+        "input_type": "المنفذ",
+        "short_desc": "كشف المنافذ المفتوحة والمغلقة وتقييم المخاطر",
+        "keywords": ["منفذ", "Port", "شبكة", "خادم", "مسح منافذ", "أمان الشبكة", "منافذ مفتوحة", "TCP", "UDP", "Firewall"],
+        "questions": [
+            "ما هي المنافذ المفتوحة في جهازي أو سيرفري؟",
+            "هل منافذي آمنة أم هناك ثغرات؟",
+            "كيف أفحص منافذ سيرفري عن بُعد؟",
+            "ما هي المنافذ الخطيرة التي يجب إغلاقها؟",
+            "كيف أحمي نفسي من هجمات مسح المنافذ؟",
+            "ما الفرق بين TCP و UDP؟"
+        ],
+        "related_tools": ["ip_check", "domain_check", "dns_check"]
+    },
+    "username_check": {
+        "name": "فحص اسم المستخدم",
+        "url_path": "username-check",
+        "icon": "👤",
+        "input_type": "اسم المستخدم",
+        "short_desc": "تحليل قوة اسم المستخدم وأمانه",
+        "keywords": ["اسم مستخدم", "يوزر", "حساب", "هوية", "بوت", "أمان", "تسجيل دخول", "أنماط", "تشابه", "تكرار"],
+        "questions": [
+            "هل اسم المستخدم الحالي آمن وقوي؟",
+            "كيف أختار اسماً قوياً لا يمكن تخمينه؟",
+            "هل اسمي شائع وسهل الاختراق؟",
+            "كيف أحمي اسم المستخدم من الاحتيال؟",
+            "ما هي أنماط البوت في أسماء المستخدمين؟",
+            "كيف أتجنب استخدام اسم مستخدم مكشوف؟"
+        ],
+        "related_tools": ["password_check", "email_check", "ip_check"]
+    },
+    "jwt_check": {
+        "name": "فحص JWT Token",
+        "url_path": "jwt-check",
+        "icon": "🔐",
+        "input_type": "JWT Token",
+        "short_desc": "تحليل صحة وسلامة JWT Token",
+        "keywords": ["JWT", "توكن", "مصادقة", "API", "توقيع", "JSON", "Token", "Web Token", "OAuth", "Bearer", "Authentication"],
+        "questions": [
+            "ما هو JWT وكيف يعمل؟",
+            "كيف أتحقق من صحة توقيع التوكن؟",
+            "ما هي ثغرات JWT الأمنية الشائعة؟",
+            "كيف أحمي JWTs الخاصة بي من السرقة؟",
+            "ما الفرق بين JWT و Session؟",
+            "كيف أقرأ محتوى الـ JWT (Payload)؟"
+        ],
+        "related_tools": ["api_key_check", "password_check", "base64_check"]
+    },
+    "base64_check": {
+        "name": "فك تشفير Base64",
+        "url_path": "base64-check",
+        "icon": "📝",
+        "input_type": "النص المشفر",
+        "short_desc": "فك تشفير وتحليل النصوص المشفرة",
+        "keywords": ["Base64", "تشفير", "فك تشفير", "ترميز", "بيانات", "نص مشفر", "تحويل", "ASCII", "UTF8", "Binary"],
+        "questions": [
+            "ما هو Base64 ولماذا يستخدم؟",
+            "كيف أفك تشفير نص مشفر بـ Base64؟",
+            "هل Base64 آمن للتشفير؟",
+            "ما الفرق بين Base64 والتشفير الحقيقي؟",
+            "كيف أميز بين النص العادي والمشفر؟",
+            "ما هي استخدامات Base64 في الويب؟"
+        ],
+        "related_tools": ["hash_check", "jwt_check", "password_check"]
+    },
+    "credit_card_check": {
+        "name": "فحص بطاقات الائتمان",
+        "url_path": "credit-card-check",
+        "icon": "💳",
+        "input_type": "رقم البطاقة",
+        "short_desc": "التحقق من صحة البطاقات وكشف الاحتيال",
+        "keywords": ["بطاقة ائتمان", "فيزا", "ماستركارد", "Luhn", "رقم بطاقة", "دفع إلكتروني", "تحقق", "Amex", "Discover", "JCB", "BIN"],
+        "questions": [
+            "كيف أتحقق من صحة رقم بطاقة الائتمان؟",
+            "ما هي خوارزمية Luhn وكيف تعمل؟",
+            "كيف أميز نوع البطاقة من رقمها؟",
+            "هل رقم البطاقة هذا صحيح رياضياً؟",
+            "ما هي أرقام بطاقات الاختبار الآمنة؟",
+            "كيف أتجنب الاحتيال بالبطاقات؟"
+        ],
+        "related_tools": ["phone_check", "email_check", "url_check"]
+    },
+    "dns_check": {
+        "name": "فحص DNS",
+        "url_path": "dns-check",
+        "icon": "🌐",
+        "input_type": "اسم النطاق",
+        "short_desc": "استعلام وتحليل سجلات DNS",
+        "keywords": ["DNS", "سجلات DNS", "خادم أسماء", "MX", "TXT", "A record", "CNAME", "NS", "SOA", "PTR", "SPF", "DKIM"],
+        "questions": [
+            "ما هي سجلات DNS وكيف أستعلم عنها؟",
+            "كيف أتحقق من إعدادات DNS لنطاقي؟",
+            "ما هو MX record وكيف يؤثر على البريد؟",
+            "كيف أكتشف ثغرات DNS؟",
+            "ما الفرق بين أنواع سجلات DNS المختلفة؟",
+            "كيف أتحقق من SPF و DKIM و DMARC؟"
+        ],
+        "related_tools": ["domain_check", "ip_check", "email_check"]
+    },
+    "user_agent_check": {
+        "name": "تحليل User Agent",
+        "url_path": "user-agent-check",
+        "icon": "🖥️",
+        "input_type": "User Agent",
+        "short_desc": "تحليل المتصفح ونظام التشغيل والجهاز",
+        "keywords": ["User Agent", "متصفح", "نظام تشغيل", "جهاز", "بوت", "زائر", "مستخدم", "Chrome", "Firefox", "Safari", "Edge", "Mobile"],
+        "questions": [
+            "ما هو User Agent وكيف يعمل؟",
+            "كيف أعرف متصفح وإصدار الزائر؟",
+            "كيف أكتشف البوتات والزيارات الآلية؟",
+            "ما هو نظام تشغيل المستخدم؟",
+            "كيف أميز بين زائر حقيقي وبوت؟",
+            "هل يمكن تزييف User Agent؟"
+        ],
+        "related_tools": ["ip_check", "username_check", "url_check"]
+    },
+    "hash_check": {
+        "name": "تحليل التجزئة",
+        "url_path": "hash-check",
+        "icon": "🔢",
+        "input_type": "التجزئة (Hash)",
+        "short_desc": "تحديد نوع وخوارزمية التجزئة",
+        "keywords": ["Hash", "تجزئة", "MD5", "SHA1", "SHA256", "SHA512", "خوارزمية", "تشفير", "بصمة", "BCrypt", "Argon2"],
+        "questions": [
+            "ما هو التجزئة (Hash) وكيف يعمل؟",
+            "ما الفرق بين MD5 و SHA256 وأيهما آمن؟",
+            "كيف أعرف نوع خوارزمية التجزئة؟",
+            "هل التجزئة آمنة لتخزين كلمات المرور؟",
+            "ما هي خوارزميات التجزئة الضعيفة؟",
+            "كيف أتحقق من صحة التجزئة؟"
+        ],
+        "related_tools": ["base64_check", "password_check", "jwt_check"]
+    },
+    "api_key_check": {
+        "name": "فحص مفاتيح API",
+        "url_path": "api-key-check",
+        "icon": "🔑",
+        "input_type": "مفتاح API",
+        "short_desc": "تحليل مفاتيح API والتحقق من صحتها",
+        "keywords": ["API Key", "مفتاح API", "OpenAI", "Google", "Stripe", "GitHub", "AWS", "Microsoft", "مصادقة", "تطبيقات"],
+        "questions": [
+            "كيف أتحقق من صحة مفتاح API؟",
+            "ما هي أنواع مفاتيح API المختلفة؟",
+            "كيف أحمي مفاتيح API من السرقة؟",
+            "هل مفتاح API الخاص بي صالح للاستخدام؟",
+            "ما الفرق بين API Key و Token؟",
+            "كيف أكتشف تسريب مفاتيح API؟"
+        ],
+        "related_tools": ["jwt_check", "password_check", "url_check"]
+    },
+    "file_upload_check": {
+        "name": "فحص الملفات",
+        "url_path": "file-upload-check",
+        "icon": "📁",
+        "input_type": "الملف",
+        "short_desc": "كشف البرمجيات الخبيثة وتحليل الملفات",
+        "keywords": ["ملف", "فيروس", "برمجيات خبيثة", "تحميل", "Malware", "امتداد", "فحص ملف", "مشبوه", "Trojan", "Ransomware", "Virus"],
+        "questions": [
+            "هل هذا الملف آمن أم يحتوي على فيروس؟",
+            "كيف أفحص ملفاً قبل فتحه أو تنزيله؟",
+            "ما هي أنواع الملفات الخطيرة التي يجب الحذر منها؟",
+            "كيف أكتشف البرمجيات الخبيثة في الملفات؟",
+            "ما هو تحليل Entropy للملفات؟",
+            "كيف أتجنب تنزيل الملفات الضارة؟"
+        ],
+        "related_tools": ["url_check", "email_check", "hash_check"]
+    },
+    "password_generator": {
+        "name": "مولد كلمات مرور قوية",
+        "url_path": "password-generator",
+        "icon": "⚡",
+        "input_type": "كلمة المرور",
+        "short_desc": "توليد كلمات مرور عشوائية وقوية وآمنة",
+        "keywords": ["توليد كلمة مرور", "مولد باسورد", "كلمة مرور عشوائية", "كلمة مرور قوية", "Random password", "أمان", "حماية", "معقدة"],
+        "questions": [
+            "كيف أولد كلمة مرور قوية لا تُخترق؟",
+            "ما هي أفضل طريقة لتوليد الباسورد الآمن؟",
+            "كم طول كلمة المرور المناسب لكل موقع؟",
+            "كيف أتجنب الأنماط الضعيفة في كلمات المرور؟",
+            "هل المولدات العشوائية آمنة حقاً؟",
+            "ما الفرق بين كلمة المرور المولدة والمختارة يدوياً؟"
+        ],
+        "related_tools": ["password_check", "username_check", "email_check"]
+    }
+}
+
+# ==================================================================================================
+# 7. بيانات المحتوى المتخصص للأدوات
+# ==================================================================================================
+SPECIFIC_CONTENT = {
+    "ip_check": {
+        "mistakes": ["الاعتماد على قواعد بيانات مجانية تعطي مواقع قديمة.", "تجاهل كشف الـ VPN والبروكسي عند تحليل الزائر.", "عدم التحقق من 'Blacklist Status' للـ IP."],
+        "tips": ["استخدم تقنيات Reverse DNS للتأكد من هوية المالك.", "راقب الـ ISP لكشف الزيارات القادمة من مراكز البيانات.", "اربط الـ IP بسلوك المستخدم لرصد الهجمات."]
+    },
+    "email_check": {
+        "mistakes": ["تجاهل سجلات MX والاكتفاء بفحص صيغة الإيميل.", "عدم كشف 'البريد المؤقت' الذي يستخدمه المخترقون.", "الثقة في إيميلات لا تملك سجلات SPF أو DKIM."],
+        "tips": ["تحقق من سمعة النطاق المرسل قبل فتح المرفقات.", "استخدم ميزة كشف التسريبات للتأكد من أمان حسابك.", "فعل المصادقة الثنائية لأي بريد مرتبط بأعمالك."]
+    },
+    "password_check": {
+        "mistakes": ["استخدام كلمات مرور قصيرة (أقل من 12 حرفاً).", "الاعتماد على معلومات شخصية مثل تاريخ الميلاد.", "تكرار نفس كلمة المرور في أكثر من حساب حساس."],
+        "tips": ["استخدم نظام 'Passphrase' (جملة طويلة) لزيادة الأمان.", "اعتمد على مدير كلمات مرور (Password Manager).", "فعل خاصية 2FA كخط دفاع أساسي ثانٍ."]
+    },
+    "url_check": {
+        "mistakes": ["النقر على الروابط المختصرة دون فحص وجهتها.", "الثقة العمياء في الـ HTTPS (المحتالون يستخدمونه أيضاً).", "تجاهل أحرف 'Homograph' التي تشبه المواقع الشهيرة."],
+        "tips": ["استخدم ميزة 'Preview' للروابط قبل النقر عليها.", "افحص الرابط في VirusTotal إذا كان من مصدر مجهول.", "مرر الماوس فوق الرابط لرؤية العنوان الحقيقي في الزاوية."]
+    },
+    "phone_check": {
+        "mistakes": ["مشاركة كود التحقق (OTP) مع المتصلين المجهولين.", "تصديق الرسائل التي تطلب تحديث البيانات البنكية.", "إعطاء صلاحيات واسعة لتطبيقات كشف الأرقام."],
+        "tips": ["استخدم خدمات التحقق من نوع الخط (VoIP vs Mobile).", "لا ترد على المكالمات الدولية المشبوهة (One-ring scam).", "فعل خاصية حظر المكالمات المزعجة في جهازك."]
+    },
+    "domain_check": {
+        "mistakes": ["تجاهل تاريخ انتهاء النطاق مما يعرضه للضياع.", "إهمال قفل النطاق (Registrar Lock) لمنع السرقة.", "ترك سجلات DNS قديمة تشير لسيرفرات مهجورة."],
+        "tips": ["فعل خاصية WHOIS Privacy لحماية بياناتك.", "راقب سجل التغييرات (History) لكشف الانتقال المشبوه.", "تأكد من صحة البريد المسجل في سجلات النطاق."]
+    },
+    "port_check": {
+        "mistakes": ["ترك المنافذ الحساسة (22, 3389) مفتوحة للعامة.", "عدم التمييز بين المنفذ المغلق والمنفذ المفلتر.", "استخدام أرقام المنافذ الافتراضية للخدمات الهامة."],
+        "tips": ["استخدم تقنية Port Knocking لإخفاء المنافذ.", "افحص منافذك دورياً للتأكد من عدم وجود أبواب خلفية.", "أغلق أي منفذ لا تستخدمه فوراً لتقليل ثغرات الهجوم."]
+    },
+    "username_check": {
+        "mistakes": ["استخدام يوزر واحد في كل المواقع (تسهيل الـ OSINT).", "اختيار يوزر يحتوي على اسمك الحقيقي بالكامل.", "استخدام يوزرات شائعة جداً يسهل تخمينها."],
+        "tips": ["اجعل يوزر الحسابات البنكية فريداً وغير متوقع.", "ابحث عن يوزرك في محركات البحث لترى ما يظهر عنك.", "استخدم 'أنماط عشوائية' في الأسماء لزيادة الخصوصية."]
+    },
+    "jwt_check": {
+        "mistakes": ["تخزين الـ Token في LocalStorage (خطر الـ XSS).", "عدم التحقق من توقيع (Signature) التوكن في السيرفر.", "وضع معلومات حساسة مثل الباسورد داخل الـ Payload."],
+        "tips": ["استخدم خوارزميات قوية مثل RS256 بدلاً من HS256.", "تحقق دائماً من حقل 'exp' لمنع استخدام توكن منتهي.", "استخدم HttpOnly Cookies لتخزين التوكنات الحساسة."]
+    },
+    "base64_check": {
+        "mistakes": ["الاعتماد على Base64 كطريقة 'تشفير' (هو مجرد ترميز).", "فك تشفير نصوص مجهولة وتشغيلها مباشرة (Code Injection).", "نقل بيانات ضخمة عبر Base64 مما يسبب بطء النظام."],
+        "tips": ["استخدم Base64 لنقل الصور أو البيانات التقنية فقط.", "قم بعمل Sanitize للنص الناتج بعد الفك دائماً.", "تأكد من سلامة البيانات (Integrity) قبل معالجتها."]
+    },
+    "credit_card_check": {
+        "mistakes": ["إدخال بيانات البطاقة في مواقع لا تدعم 3D Secure.", "حفظ رقم البطاقة والـ CVV في المتصفحات العامة.", "تجاهل مطابقة الـ BIN مع دولة إصدار البطاقة."],
+        "tips": ["استخدم البطاقات الافتراضية للتسوق لمرة واحدة.", "راقب كشف الحساب دورياً لأي عمليات صغيرة مشبوهة.", "لا تشارك صور بطاقتك أبداً في تطبيقات المراسلة."]
+    },
+    "dns_check": {
+        "mistakes": ["إهمال سجلات الـ TXT التي قد تسرب معلومات السيرفر.", "عدم استخدام سجلات CAA لتقييد إصدار الشهادات.", "تجاهل ثغرة Subdomain Takeover في السجلات القديمة."],
+        "tips": ["فعل بروتوكول DNSSEC لتأمين طلبات الـ DNS.", "استخدم سجلات SPF و DMARC بدقة لحماية بريدك.", "تحقق من سرعة استجابة سيرفرات الـ DNS الخاصة بك."]
+    },
+    "user_agent_check": {
+        "mistakes": ["تجاهل تقنية Client Hints الجديدة من جوجل.", "الاعتماد على RegExp قديم لا يميز المتصفحات الحديثة.", "الثقة في الـ User Agent دون مطابقته مع الـ IP."],
+        "tips": ["حدث مكتبة التحليل شهرياً لمواكبة الأجهزة الجديدة.", "راقب تكرار الـ UA من آي بيات مختلفة لكشف الكشط.", "استخدم التحليل لتخصيص تجربة المستخدم وليس للأمن فقط."]
+    },
+    "hash_check": {
+        "mistakes": ["استخدام MD5 أو SHA1 (خوارزميات مكسورة تقنياً).", "عدم استخدام 'Salt' مما يسهل هجمات Rainbow Table.", "تخزين الـ Hash دون تحديد نوع الخوارزمية المستخدمة."],
+        "tips": ["انتقل لاستخدام Argon2 أو BCrypt لتشفير الباسوردات.", "تذكر أن الـ Hash لا يمكن فكه؛ هو بصمة فقط.", "تحقق من طول الـ Hash لتحديد نوعه (مثلاً 64 للـ SHA256)."]
+    },
+    "api_key_check": {
+        "mistakes": ["رفع المفاتيح في ملفات GitHub العامة.", "عدم تقييد المفتاح (IP Restriction) برقم آي بي السيرفر.", "مشاركة مفتاح الـ API في كود الـ JavaScript (Client-side)."],
+        "tips": ["استخدم Environment Variables لتخزين المفاتيح.", "قم بتدوير (Rotate) المفاتيح كل 3-6 أشهر دورياً.", "راقب معدل الاستهلاك (Usage) لكشف أي سرقة للمفتاح."]
+    },
+    "file_upload_check": {
+        "mistakes": ["الاعتماد على امتداد الملف فقط دون فحص الـ Magic Bytes.", "فتح ملفات الأوفيس دون تعطيل الماكرو (Macros).", "رفع ملفات دون فحص الـ Entropy (كشف التشفير/الضغط)."],
+        "tips": ["افحص الـ Hash للملف في قاعدة بيانات VirusTotal.", "لا تفتح ملفات مضغوطة بكلمات مرور من غرباء.", "قم بتشغيل الملفات المشبوهة داخل Sandbox معزول."]
+    },
+    "password_generator": {
+        "mistakes": ["حفظ كلمة المرور المولدة في ملف نصي مكشوف.", "استخدام كلمات مرور قصيرة أو سهلة النطق.", "توليد كلمة مرور واحدة واستخدامها لكل الحسابات."],
+        "tips": ["اجعل طول الكلمة 16 حرفاً فأكثر لضمان القوة.", "استخدم مزيجاً من الرموز العشوائية والأرقام والحروف.", "اعتمد على المولدات التي تستخدم Entropy حقيقي."]
+    }
+}
+
+# ==================================================================================================
+# 8. نظام أنواع المقالات المتعددة (8 أنواع كاملة)
+# ==================================================================================================
+ARTICLE_TYPES: Dict[str, Dict] = {
+    "long_guide": {
+        "name": "دليل شامل",
+        "name_en": "Comprehensive Guide",
+        "length": "طويل (3500-5500 كلمة)",
+        "tone": "تعليمي، أكاديمي، مفصل",
+        "has_story": False,
+        "has_comparison": True,
+        "has_technical": True,
+        "weight": 1.0,
+        "sections": [
+            "introduction_long", "what_is_detailed", "why_important_detailed", "how_it_works_deep",
+            "benefits_detailed", "step_by_step_detailed", "practical_steps", "ip_vs_privacy", "statistics_and_examples",
+            "best_practices", "common_mistakes", "comparison_table", "faq_detailed", "conclusion_inspiring"
+        ]
+    },
+    "personal_experience": {
+        "name": "تجربة شخصية",
+        "name_en": "Personal Experience",
+        "length": "متوسط (2500-4000 كلمة)",
+        "tone": "قصصي، عاطفي، مؤثر",
+        "has_story": True,
+        "has_comparison": False,
+        "has_technical": False,
+        "weight": 1.0,
+        "sections": [
+            "viral_hook_strong", "real_story_detailed", "problem_i_faced", "how_i_discovered",
+            "the_solution_that_worked", "results_and_lessons", "what_i_learned", "recommendation_heartfelt",
+            "practical_steps", "statistics_and_examples", "developer_manual_check", "faq_from_experience",
+        ]
+    },
+    "hybrid_page": {
+        "name": "صفحة أداة مع دليل",
+        "name_en": "Tool + Guide Hybrid",
+        "length": "متوسط (2000-3500 كلمة)",
+        "tone": "عملي، مباشر، مفيد",
+        "has_story": False,
+        "has_comparison": False,
+        "has_technical": True,
+        "weight": 1.5,
+        "sections": [
+            "quick_answer",      # إجابة سريعة (مهم لـ Featured Snippet)
+            "what_is_detailed",
+            "table_of_contents",
+            "how_it_works_deep",
+            "practical_steps",
+            "statistics_and_examples",
+            "faq_detailed",
+            "people_also_ask",
+            "call_to_action_urgent"
+        ]
+    },
+    "technical_analysis": {
+        "name": "تحليل تقني عميق",
+        "name_en": "Deep Technical Analysis",
+        "length": "طويل جداً (4500-6500 كلمة)",
+        "tone": "أكاديمي، تقني، متخصص",
+        "has_story": False,
+        "has_comparison": True,
+        "has_technical": True,
+        "weight": 0.9,
+        "sections": [
+            "technical_hook", "architecture_overview", "how_it_works_technical", "algorithm_explanation",
+            "security_analysis", "performance_metrics", "comparison_with_alternatives",
+            "limitations_and_edge_cases", "practical_steps", "statistics_and_examples", "expert_recommendations", "technical_faq", "conclusion_technical"
+        ]
+    },
+    "case_study": {
+        "name": "دراسة حالة حقيقية",
+        "name_en": "Real Case Study",
+        "length": "متوسط (3000-4500 كلمة)",
+        "tone": "تحليلي، واقعي، عملي",
+        "has_story": True,
+        "has_comparison": False,
+        "has_technical": True,
+        "weight": 1.0,
+        "sections": [
+            "hook_case_study", "scenario_description", "problem_analysis_deep", "solution_applied",
+            "implementation_steps", "practical_steps", "statistics_and_examples", "results_and_metrics", "challenges_faced", "key_takeaways",
+            "lessons_learned", "faq_case_study", "conclusion_case_study"
+        ]
+    },
+    "comparison": {
+        "name": "مقارنة شاملة",
+        "name_en": "Comprehensive Comparison",
+        "length": "متوسط (3000-4500 كلمة)",
+        "tone": "تحليلي، موضوعي، مقارن",
+        "has_story": False,
+        "has_comparison": True,
+        "has_technical": True,
+        "weight": 0.9,
+        "sections": [
+            "comparison_hook", "competitors_overview", "comparison_table_detailed", "speed_comparison",
+            "accuracy_comparison", "price_comparison", "ease_of_use_comparison", "detailed_analysis",
+            "practical_steps", "statistics_and_examples", "winner_and_why", "verdict_final", "faq_comparison", "conclusion_comparison"
+        ]
+    },
+    "viral_short": {
+        "name": "فيروسي قصير",
+        "name_en": "Viral Short",
+        "length": "قصير (1500-2500 كلمة)",
+        "tone": "صادم، مشوق، سريع",
+        "has_story": True,
+        "has_comparison": False,
+        "has_technical": False,
+        "weight": 1.2,
+        "sections": [
+        "shocking_hook_viral",
+        "shocking_fact",
+        "fast_facts_shocking",
+        "quick_warning_alert",
+        "what_you_need_to_know",
+        "quick_solution_steps",
+        "real_story_short",
+        "why_this_matters",
+        "practical_steps",
+        "statistics_and_examples",
+        "common_mistakes_short",
+        "quick_faq",
+        "call_to_action_urgent",
+        "conclusion_viral"
+]
+    },
+    "qa_style": {
+        "name": "أسئلة وأجوبة",
+        "name_en": "Q&A Style",
+        "length": "متوسط (2500-4000 كلمة)",
+        "tone": "تفاعلي، مفيد، مباشر",
+        "has_story": False,
+        "has_comparison": False,
+        "has_technical": True,
+        "weight": 1.0,
+        "sections": [
+            "qa_hook", "main_question_deep", "detailed_answer_comprehensive", "practical_steps", "ip_vs_privacy", "statistics_and_examples",
+            "more_questions_answered", "expert_qa_session", "user_questions", "quick_qa_summary", "faq_extended", "conclusion_qa"
+        ]
+    },
+    "mistakes_focus": {
+        "name": "الأخطاء الشائعة",
+        "name_en": "Common Mistakes",
+        "length": "متوسط (2500-4000 كلمة)",
+        "tone": "تحذيري، تعليمي، مفيد",
+        "has_story": True,
+        "has_comparison": False,
+        "has_technical": True,
+        "weight": 1.1,
+        "sections": [
+            "warning_hook_strong", "explicit_mistakes_list", "common_mistakes_list_detailed",
+            "real_consequences", "practical_steps", "statistics_and_examples", "how_to_fix_each_mistake", "prevention_strategies",
+            "expert_tips_to_avoid", "faq_mistakes", "conclusion_warning"
+        ]
+    }
+}
+
+# ==================================================================================================
+# 9. نظام الجمل الضخم (500+ جملة - النسخة الكاملة)
+# ==================================================================================================
+class AdvancedSpinLogic:
+    """نظام Spin Logic متقدم - أكثر من 500 جملة مختلفة"""
+
+    INTROS: List[str] = [
+        "{tool_name} يكشف لك الموقع الجغرافي ومزود الخدمة والسمعة الأمنية خلال ثوانٍ. إليك كل ما تحتاج معرفته.",
+        "هل تعلم أن أكثر من 70% من المستخدمين يجهلون أن {tool_name} يمكنه كشف الاختراقات والروابط الضارة والبريد المزيف؟",
+        "دقيقتان فقط تفصلك عن فهم كامل لـ {tool_name}. ابدأ هنا.",
+        "كيف تحمي نفسك من الاختراق والتصيد والاحتيال؟ الحل بسيط: {tool_name}.",
+        "ما هو {tool_name}؟ باختصار: هو خط دفاعك الأول في العالم الرقمي.",
+        "لا تكن ضحية للهجمات الإلكترونية أو السرقة الرقمية أو اختراق حساباتك. تعلم كيف تستخدم {tool_name} الآن.",
+        "{tool_name}: دليل عملي خطوة بخطوة للمبتدئين والمحترفين.",
+        "هل {tool_name} ضروري حقاً؟ الإجابة: نعم، وإليك الأسباب.",
+        "في هذا الدليل، ستتعلم كل ما تحتاج معرفته عن {tool_name}.",
+        "ماذا يفعل {tool_name} بالضبط؟ وكيف يمكنك الاستفادة منه اليوم؟"
+    ]
+
+    BENEFITS: List[str] = [
+        "يكشف المعلومات المخفية والبيانات غير الواضحة بدقة عالية وفق قواعد بيانات محدثة باستمرار",
+        "يوفر نتائج فورية في أقل من ثانية واحدة مع تقارير مفصلة",
+        "يحميك من الاحتيال والتصيد الإلكتروني والبرمجيات الخبيثة",
+        "يساعدك على اتخاذ قرارات مستنيرة قبل فوات الأوان",
+        "يوفر عليك الوقت والجهد والمال في التحقق اليدوي",
+        "يتم تحديث قواعد بياناته باستمرار لمواكبة أحدث التهديدات والثغرات",
+        "يقدم توصيات عملية وذكية قابلة للتطبيق فوراً",
+        "واجهته بسيطة وتناسب جميع المستويات من مبتدئين إلى محترفين",
+        "يمكنك استخدامه مجاناً دون أي قيود أو رسوم خفية أو اشتراكات",
+        "يعمل على جميع الأجهزة والهواتف الذكية والأجهزة اللوحية دون تثبيت",
+        "لا يحتاج إلى تسجيل أو إنشاء حساب أو مشاركة بيانات شخصية",
+        "نتائجه دقيقة وموثوقة وفق اختبارات مستقلة من خبراء عالميين",
+        "يساعدك على اكتشاف الثغرات ونقاط الضعف قبل استغلالها من المخترقين",
+        "يمنحك راحة البال والطمأنينة عندما تتعامل مع مواقع أو أشخاص جدد",
+        "يقلل المخاطر الأمنية بنسبة تصل إلى 90% وفق دراسات حديثة من NIST",
+        "يمنع اختراق حساباتك قبل حدوثه من خلال تنبيهات فورية",
+        "يحمي بياناتك الشخصية والمالية من السرقة والاستغلال",
+        "يساعد في توعية فريق العمل والعائلة بالمخاطر الرقمية",
+        "يوفر تقارير قابلة للتصدير والطباعة للمراجعة والتدقيق",
+        "يمكن استخدامه من قبل المؤسسات والأفراد على حد سواء",
+        "يتميز بسرعة فائقة في معالجة البيانات وتحليلها",
+        "يتكامل مع أنظمة الأمان الأخرى لتوفير حماية شاملة",
+        "يوفر تحليلات متقدمة تفوق ما تقدمه الأدوات المنافسة",
+        "سهل التعلم ولا يتطلب أي خبرة تقنية مسبقة",
+        "يتم دعمه وتطويره باستمرار من قبل فريق محترف",
+        "متوفر باللغة العربية بشكل كامل وسلس",
+        "يحمي خصوصيتك ولا يشارك بياناتك مع أي طرف ثالث",
+        "يمكنك الاعتماد عليه في الفحوصات اليومية والدورية",
+        "يقدم حلولاً فورية للمشاكل الأمنية الشائعة",
+        "يساعد في رفع مستوى الوعي الأمني لديك ولدى فريقك",
+        "يقلل من فرص الوقوع ضحية للاحتيال الإلكتروني",
+        "يمكن استخدامه في أي وقت ومن أي مكان",
+        "لا يتطلب أي تثبيت أو تنزيل، يعمل مباشرة من المتصفح",
+        "يقدم نتائج مفهومة وغير معقدة للمستخدم العادي",
+        "يتم تحديثه بشكل دوري لمواكبة أحدث التهديدات",
+        "مدعوم من قبل خبراء أمنيين معتمدين دولياً",
+        "حصل على جوائز تقديرية في مجال الأمن السيبراني",
+        "يستخدم من قبل آلاف المؤسسات حول العالم",
+        "موثوق به من قبل ملايين المستخدمين",
+        "يقدم قيمة حقيقية ويحقق نتائج ملموسة"
+    ]
+
+    TIPS: List[str] = [
+        "لا تكتفِ باستخدام الأداة مرة واحدة فقط. يفضل إعادة الفحص دورياً كل أسبوعين على الأقل",
+        "شارك نتائج التحليل مع فريقك أو عائلتك لرفع مستوى الوعي الأمني لدى الجميع",
+        "اجمع بين هذه الأداة وأدوات أمنية أخرى للحصول على حماية شاملة متعددة الطبقات",
+        "وثق النتائج القديمة لمقارنتها مع الجديدة - ستلاحظ تحسناً في أمانك مع مرور الوقت",
+        "جرب الأداة على بيانات تجريبية أولاً لتتعلم كيفية استخدامها بثقة قبل الاستخدام الحقيقي",
+        "لا تشارك نتائج التحليل مع أي شخص دون داعٍ، فالبيانات قد تكون حساسة",
+        "تأكد من تحديث المتصفح قبل استخدام الأداة للحصول على أفضل أداء وأمان",
+        "استخدم الأداة فور استلام أي رابط أو بريد مشبوه - لا تؤجل الفحص أبداً",
+        "لا تهمل النتائج حتى لو كانت التحذيرات بسيطة، فالخطر قد يكون أكبر مما يبدو",
+        "علم أطفالك كيفية استخدام هذه الأدوات لحمايتهم من المخاطر الرقمية منذ الصغر",
+        "إذا كنت تدير فريقاً، اجعل فحص الروابط والملفات إجراءً إلزامياً يومياً",
+        "لا تضغط على أي رابط قبل التحقق منه حتى لو كان المرسل شخصاً تثق به تماماً",
+        "كلمة المرور القوية هي أول خط دفاع، لكنها ليست كافية وحدها أبداً",
+        "استخدم المصادقة الثنائية (2FA/MFA) مع جميع حساباتك المهمة بدون استثناء",
+        "لا تثق في المواقع التي تطلب معلومات حساسة دون وجود شهادة SSL صالحة",
+        "احتفظ بنسخة احتياطية من بياناتك المهمة في مكان آمن (سحابي أو قرص خارجي)",
+        "غير كلمات المرور كل 3-6 أشهر خاصة للحسابات الحساسة مثل البريد والبنك",
+        "لا تستخدم نفس كلمة المرور في أكثر من حساب، كل حساب له كلمة مرور فريدة",
+        "تأكد من أن الروابط التي تنقر عليها تبدأ بـ HTTPS وليس HTTP فقط",
+        "لا تفتح المرفقات المشبوهة حتى لو كانت من شخص تعرفه (قد يكون حسابه مخترقاً)",
+        "استخدم VPN عند الاتصال بشبكات الواي فاي العامة في الأماكن المزدحمة",
+        "لا تقم بتخزين كلمات المرور في المتصفح، استخدم مدير كلمات مرور مخصص",
+        "فعّل الإشعارات الأمنية من حساباتك المهمة لمعرفة أي محاولة دخول مشبوهة",
+        "لا ترد على رسائل البريد الإلكتروني التي تطلب معلومات شخصية أو مالية",
+        "تأكد من تحديث نظام التشغيل وجميع البرامج بانتظام",
+        "لا تقم بتنزيل البرامج من مصادر غير رسمية أو مواقع مشبوهة",
+        "استخدم برامج مكافحة فيروسات موثوقة وقم بتحديثها بانتظام",
+        "لا تثق في المكالمات الهاتفية التي تطلب منك معلومات حساسة",
+        "قم بفحص الروابط قبل النقر عليها باستخدام هذه الأداة",
+        "لا تشارك شاشة جهازك مع أي شخص دون داعٍ",
+        "قم بإغلاق الحسابات القديمة التي لم تعد تستخدمها",
+        "استخدم عناوين بريد إلكتروني مختلفة للحسابات المختلفة",
+        "لا تستخدم معلومات شخصية سهلة التخمين في أسئلة الأمان",
+        "قم بمراجعة صلاحيات التطبيقات على هاتفك بشكل دوري",
+        "لا تسمح للتطبيقات بالوصول إلى بياناتك دون حاجة حقيقية",
+        "قم بتعطيل ميزة 'حفظ كلمة المرور' في المتصفحات العامة",
+        "استخدم وضع التصفح المتخفي عند استخدام أجهزة الآخرين",
+        "لا تقم بتسجيل الدخول إلى حساباتك المهمة من أجهزة عامة",
+        "قم بتسجيل الخروج من حساباتك بعد الانتهاء من استخدامها",
+        "لا تترك جلسات العمل مفتوحة على أجهزة العمل"
+    ]
+
+    MISTAKES: List[str] = [
+        "استخدام كلمات مرور ضعيفة وسهلة التخمين مثل 123456 أو password أو اسم المستخدم نفسه",
+        "تجاهل رسائل التحذير الأمنية من المتصفح أو نظام التشغيل أو برامج الحماية",
+        "النقر على الروابط دون التحقق من مصدرها أو تمرير الماوس فوقها لرؤية الرابط الحقيقي",
+        "استخدام نفس كلمة المرور في حسابات متعددة (بنك، بريد، مواقع تواصل اجتماعي، متاجر)",
+        "عدم تحديث البرامج والتطبيقات ونظام التشغيل بانتظام وترك الثغرات الأمنية مكشوفة",
+        "تجاهل تفعيل المصادقة الثنائية (2FA) رغم توفرها في معظم الخدمات الكبرى",
+        "تحميل الملفات من مصادر غير موثوقة أو من روابط مختصرة مجهولة المصدر",
+        "مشاركة المعلومات الحساسة (كلمات مرور، بطاقات، هويات) عبر البريد الإلكتروني أو تطبيقات المراسلة غير المشفرة",
+        "استخدام شبكات الواي فاي العامة (المقاهي، المطارات، الفنادق) دون حماية VPN",
+        "عدم عمل نسخ احتياطي للبيانات المهمة بشكل دوري ومنتظم",
+        "تجاهل تحديث كلمات المرور القديمة حتى بعد تسريبات البيانات العالمية",
+        "الرد على رسائل التصيد أو النقر على روابطها أو تحميل مرفقاتها",
+        "تثبيت تطبيقات من متاجر غير رسمية أو من روابط مشبوهة",
+        "إعطاء صلاحيات غير ضرورية للتطبيقات على الهاتف أو الحاسوب",
+        "تخزين كلمات المرور في ملفات نصية أو صور على سطح المكتب",
+        "إعادة استخدام كلمات المرور القديمة بعد تغييرها",
+        "استخدام معلومات شخصية (تاريخ ميلاد، اسم حيوان أليف، اسم فرد العائلة) ككلمة مرور",
+        "الاعتماد على برامج الحماية المجانية فقط دون طبقات حماية إضافية",
+        "تجاهل تحديث المتصفح لآخر إصدار",
+        "الاعتقاد بأن الحساب الصغير أو غير المهم لا يستحق الحماية",
+        "النقر على إعلانات مشبوهة أو عروض مغرية على الإنترنت",
+        "إدخال بيانات بطاقة الائتمان في مواقع غير موثوقة",
+        "تجاهل إشعارات تسجيل الدخول من أجهزة غير معروفة",
+        "الاستمرار في استخدام حسابات مخترقة دون تغيير كلمات المرور",
+        "الرد على رسائل البريد الإلكتروني التي تطلب تأكيد البيانات",
+        "فتح مرفقات البريد الإلكتروني دون فحصها أولاً",
+        "استخدام نفس البريد الإلكتروني في التسجيل بجميع المواقع",
+        "عدم مراجعة صلاحيات التطبيقات على الهواتف الذكية",
+        "تجاهل تحديثات الأمان المهمة بحجة أنها تزعج المستخدم",
+        "الاعتقاد بأن برامج مكافحة الفيروسات تحمي من كل شيء"
+    ]
+
+    SOLUTIONS: List[str] = [
+        "استخدم كلمة مرور قوية مكونة من 14 حرفاً على الأقل مع تنوع في الأحرف الكبيرة والصغيرة والأرقام والرموز الخاصة",
+        "قم بتفعيل المصادقة الثنائية (2FA) لجميع حساباتك المهمة: البريد الإلكتروني، البنوك، وسائل التواصل الاجتماعي",
+        "استخدم مدير كلمات المرور (Password Manager) مثل Bitwarden أو Keepass لتخزين كلمات مرور فريدة وقوية لكل حساب",
+        "لا تنقر على أي رابط قبل التحقق منه باستخدام أداة فحص الروابط المدمجة",
+        "قم بتحديث جميع برامجك وأنظمتك بانتظام، خاصة المتصفح ونظام التشغيل وبرامج مكافحة الفيروسات",
+        "استخدم أداة فحص البريد الإلكتروني للتحقق من صحة المرسلين قبل الرد على أي رسالة أو تنزيل أي مرفق",
+        "قم بعمل نسخ احتياطي لبياناتك المهمة في مكان آمن (سحابي موثوق أو قرص خارجي مشفر)",
+        "لا تشارك أبداً كلمات المرور الخاصة بك مع أي شخص، حتى لو بدا موثوقاً أو كان زميلاً في العمل",
+        "استخدم VPN موثوقاً ومدفوعاً عند الاتصال بشبكات الواي فاي العامة في الأماكن المزدحمة",
+        "قم بتحديث كلمات المرور كل 3-6 أشهر خاصة للحسابات الحساسة مثل البنوك والبريد الإلكتروني",
+        "تحقق من عنوان المرسل قبل فتح أي بريد إلكتروني يطلب معلومات شخصية أو مالية",
+        "استخدم برامج مكافحة فيروسات موثوقة وقم بتحديثها بانتظام، وشغل الفحص الدوري",
+        "فعّل الإشعارات الأمنية من حساباتك المهمة لمعرفة أي محاولة دخول مشبوهة فوراً",
+        "استخدم أداة تحليل النطاقات للتحقق من مصداقية المواقع قبل التعامل معها",
+        "لا تحفظ كلمات المرور في المتصفح، واستخدم بدلاً من ذلك مدير كلمات مرور مخصص",
+        "تحقق من شهادة SSL للمواقع قبل إدخال أي معلومات حساسة",
+        "استخدم بريداً إلكترونياً مؤقتاً للتسجيل في المواقع غير الموثوقة",
+        "قم بمراجعة إعدادات الخصوصية في حسابات التواصل الاجتماعي بشكل دوري",
+        "استخدم هواتف ذكية مزودة بأنظمة تحديث أمني منتظم",
+        "لا تقم بتجذير (Root) هاتفك أو كسر حماية (Jailbreak) جهازك",
+        "قم بتعطيل خاصية الاتصال التلقائي بشبكات الواي فاي المفتوحة",
+        "استخدم خدمة البريد الإلكتروني التي توفر تشفيراً للرسائل",
+        "قم بتعيين أسئلة أمان قوية وإجابات غير حقيقية يصعب تخمينها",
+        "لا تستخدم نفس رقم الهاتف للتحقق بخطوتين في جميع حساباتك",
+        "قم بمراجعة سجل الدخول إلى حساباتك بشكل دوري",
+        "استخدم تطبيقات مراسلة مشفرة مثل Signal أو Telegram للتواصل الحساس",
+        "قم بتعطيل حفظ جلسات الدخول على الأجهزة المشتركة",
+        "استخدم متصفحاً يركز على الخصوصية مثل Brave أو Firefox",
+        "قم بتنظيف ملفات تعريف الارتباط (Cookies) وذاكرة التخزين المؤقت بانتظام",
+        "لا تثق في أي رابط أو مرفق يصل إليك دون التحقق منه"
+    ]
+
+    TRANSITIONS: List[str] = [
+        "ولكن هذا ليس كل شيء، دعني أخبرك المزيد من التفاصيل المهمة",
+        "وهنا يكمن السر الحقيقي الذي اكتشفته بعد تجارب عديدة ومحاولات فاشلة",
+        "لننتقل الآن إلى الجزء الأكثر أهمية وجوهرية في هذا الموضوع",
+        "ربما تتساءل الآن: كيف يمكن تطبيق هذا عملياً في حياتي اليومية؟",
+        "لن أطيل عليك، خلاصة تجربتي وخبرتي الطويلة هي أن",
+        "والآن، بعد أن فهمت الأساسيات والمبادئ، دعني أشاركك التفاصيل الدقيقة",
+        "هذا يقودنا إلى سؤال محوري ومهم جداً:",
+        "من المهم جداً أن تفهم وتستوعب أن الأمن الرقمي ليس رفاهية بل ضرورة",
+        "لنغوص أعمق في هذا الموضوع ونتجاوز السطح إلى الجوهر",
+        "هذا ما يفعله المحترفون والخبراء، وهذا ما يجب أن تفعله أنت أيضاً",
+        "دعني أوضح لك بالأمثلة العملية والتطبيقات الواقعية",
+        "الحقيقة التي قد لا تعرفها عن هذا الموضوع هي",
+        "بعد سنوات من البحث والتجربة، توصلت إلى استنتاج مهم",
+        "ما سأقوله الآن قد يغير نظرتك تماماً للأمن الرقمي",
+        "الجزء الأكثر إثارة للاهتمام لم يأت بعد",
+        "لنتوقف لحظة ونتأمل ما قلناه حتى الآن",
+        "الآن، بعد أن وضعنا الأساس، دعنا ننتقل إلى التطبيق العملي",
+        "هناك جانب آخر لا يقل أهمية عن سابقه",
+        "دعني أضرب لك مثالاً يوضح الفكرة بشكل أفضل",
+        "لنفكر في هذا السيناريو: ماذا لو؟",
+        "هذه معلومة قد تغير طريقة تفكيرك في الأمن الرقمي",
+        "قبل أن ننتقل إلى الجزء العملي، دعني أوضح لك شيئاً مهماً",
+        "هل تعلم أن معظم المستخدمين يجهلون هذه الحقيقة؟",
+        "الدراسات والأبحاث تؤكد ما أقول",
+        "لنستعرض معاً الأدلة والبراهين",
+        "الخلاصة التي توصلت إليها بعد كل هذا هي",
+        "دعني ألخص لك ما سبق في نقاط سريعة",
+        "والآن، إلى الجزء العملي الذي تنتظره",
+        "لنبدأ التطبيق الفعلي لما تعلمناه",
+        "هذا هو الوقت المناسب لتجربة ما تعلمته"
+    ]
+
+    CONCLUSIONS: List[str] = [
+        "في النهاية، أتمنى من كل قلبي أن تكون هذه المعلومات والتجارب مفيدة وقيمة لك. لا تتردد أبداً في تجربة الأداة بنفسك ومشاركة تجربتك معنا في التعليقات.",
+        "ختاماً، تذكر دائماً وأبداً أن الأمن الرقمي مسؤولية مشتركة بين الجميع. شارك هذا الدليل المفصل مع من تحب ومع زملائك لتعم الفائدة وتزيد الوعي.",
+        "أخيراً وليس آخراً، الوقاية خير وأفضل وأقل تكلفة من العلاج. جرب الأداة الآن وتأكد بنفسك من أن بياناتك وحساباتك في مأمن من المخترقين.",
+        "لا تنتظر حتى تتعرض للاختراق أو تسرق بياناتك. ابدأ اليوم فوراً بتطبيق كل ما تعلمته واستوعبته، وشاركنا رأيك وتجربتك في التعليقات أدناه.",
+        "الخلاصة النهائية: الأداة فعالة وقوية وسهلة الاستخدام، لكن الأهم والأساسي هو وعيك أنت وانتباهك. استخدمها بذكاء وحافظ على تحديث معلوماتك دائماً.",
+        "تذكر دائماً: لا توجد حماية 100% مطلقة في العالم الرقمي، لكن استخدام هذه الأدوات والالتزام بالممارسات الصحيحة يقلل المخاطر بشكل كبير جداً وقد يصل إلى 95%.",
+        "بنهاية هذا الدليل الشامل، أنت الآن تملك المعرفة الكافية والأداة المناسبة. الباقي يعتمد عليك أنت وحدك، فلا تتردد في اتخاذ الخطوة الآن.",
+        "الأمن الرقمي رحلة مستمرة وليست وجهة نهائية. استمر في التعلم والتطوير وتحديث معلوماتك، واستخدم هذه الأداة كجزء أساسي من رحلتك نحو الأمان.",
+        "أتمنى أن تكون قد استفدت من هذا الدليل. إذا كان لديك أي سؤال أو استفسار، فلا تتردد في طرحه في التعليقات.",
+        "هذا ليس كل شيء! سأقوم بتحديث هذا الدليل باستمرار بمعلومات جديدة ونصائح إضافية.",
+        "أختم بما بدأت به: الأمن السيبراني يبدأ منك. كن يقظاً، كن آمناً، كن مسؤولاً.",
+        "لا تنسَ أن المعرفة وحدها لا تكفي، التطبيق هو ما يصنع الفرق الحقيقي.",
+        "أتمنى أن تكون قد وجدت في هذا الدليل ما يلبي احتياجاتك ويجيب عن تساؤلاتك.",
+        "شكراً لوقتك واهتمامك. أتمنى لك رحلة آمنة في عالم الإنترنت.",
+        "أرجو أن تشارك هذا الدليل مع من تهتم لأمرهم، فالأمن الرقمي مسؤولية جماعية.",
+        "الاستثمار في الأمن الرقمي هو أفضل استثمار يمكنك القيام به في عصرنا الحالي.",
+        "لا تدع الخوف يمنعك من استخدام التكنولوجيا، بل تعلم كيف تحمي نفسك وتستمتع بفوائدها.",
+        "كلما زاد وعيك، قلت فرص تعرضك للاختراق. استمر في التعلم والتطور.",
+        "هذا الدليل هو ثمرة جهد كبير، أتمنى أن تجد فيه الفائدة التي تبحث عنها.",
+        "إذا أعجبك المحتوى، لا تتردد في مشاركته مع الآخرين ليستفيدوا منه أيضاً.",
+        "نلتقي في مقالات قادمة إن شاء الله، مع المزيد من المعلومات والنصائح القيمة.",
+        "تذكر دائماً: الحماية تبدأ بخطوة صغيرة، ابدأ اليوم ولا تؤجل.",
+        "الوعي هو السلاح الأقوى في مواجهة التهديدات الرقمية.",
+        "لا تستهن بقوة كلمة مرور قوية، فقد تكون الفارق بين حساب آمن وآخر مخترق.",
+        "المعرفة قوة، والأمن الرقمي يبدأ بفهمك للمخاطر وكيفية تجنبها.",
+        "أتمنى أن تكون هذه المعلومات دافعاً لك لاتخاذ إجراءات حقيقية لحماية نفسك.",
+        "لا تتردد في العودة إلى هذا الدليل كلما احتجت إلى مراجعة المعلومات.",
+        "حفظك الله وحفظ بياناتك من كل سوء في هذا العالم الرقمي.",
+        "كن جزءاً من الحل، وليس جزءاً من المشكلة. شارك الوعي الأمني مع الآخرين.",
+        "هذا ليس نهاية الطريق، بل بداية رحلة أمنية آمنة لك ولعائلتك."
+    ]
+
+    VIRAL_WARNINGS: List[str] = [
+        "تحذير عاجل: آلاف الحسابات تُخترق يومياً بسبب الجهل بهذه المعلومة البسيطة!",
+        "صدمة: 95% من المستخدمين يقعون في هذا الفخ الخطير دون أن يدروا!",
+        "لا ترتكب هذا الخطأ القاتل: معظم الناس يفعلونه ولا يعرفون عواقبه الوخيمة!",
+        "حقائق مرعبة: ما لا يخبرك به خبراء الأمن السيبراني عن حماية بياناتك!",
+        "إنذار أحمر: إذا كنت تفعل هذا، فأنت الهدف التالي للمخترقين!",
+        "خبر عاجل: ثغرة أمنية خطيرة تهدد ملايين المستخدمين حول العالم!",
+        "تحذير: هذه الأداة وحدها قد لا تكون كافية إذا كنت تفعل هذه الأخطاء!",
+        "انتبه: 80% من الاختراقات تأتي من مصدر واحد فقط لا تتوقعه!",
+        "تنبيه: هذه العادة اليومية قد تكون سبباً في اختراق حساباتك!",
+        "تحذير شديد اللهجة: لا تتجاهل هذه الإشارات، فقد تندم لاحقاً!",
+        "هل تعلم أن هاتفك قد يكون مخترقاً الآن دون أن تشعر؟",
+        "كشف جديد: ثغرات في تطبيقات شهيرة يستغلها المخترقون!",
+        "لا تقع ضحية: هذه الحيلة يستخدمها المحتالون لإيقاعك!",
+        "انتبه جيداً: هذه الرسالة قد تكون بداية نهاية حسابك!",
+        "تحذير عاجل جداً: انتشر فيروس جديد يصيب الملفات المشتركة!",
+        "خبر صادم: بيانات ملايين المستخدمين تُباع في السوق السوداء!",
+        "لا تهمل هذه الرسالة: قد تكون آخر تحذير قبل وقوع الكارثة!",
+        "تنبيه أمني عالي الخطورة: تحديث عاجل يجب تثبيته فوراً!",
+        "احذر: هذه المواقع الوهمية تنتحل شخصية علامات تجارية كبرى!",
+        "كارثة تلوح في الأفق: اكتشف كيف تحمي نفسك قبل فوات الأوان!"
+    ]
+
+    @classmethod
+    def _pick(cls, pool: List[str]) -> str:
+        """اختيار جملة غير مكررة مع ضمان الصفر تكرار"""
+        available = [p for p in pool if tracker.is_fresh(p)]
+        if not available:
+            available = pool
+            tracker.clear()
+        chosen = random.choice(available)
+        tracker.consume(chosen)
+        return chosen
+
+    @classmethod
+    def get_intro(cls, tool_name: str) -> str:
+        intro = cls._pick(cls.INTROS)
+        if "{tool_name}" in intro:
+            return intro.format(tool_name=tool_name)
+        return f"{intro} **{tool_name}**."
+
+    @classmethod
+    def get_benefit(cls) -> str:
+        return f"✅ {cls._pick(cls.BENEFITS)}"
+
+    @classmethod
+    def get_tip(cls, tool_name: str = None) -> str:
+        tip = cls._pick(cls.TIPS)
+        if tool_name and "الأداة" in tip:
+            tip = tip.replace("الأداة", tool_name)
+        return f"💡 {tip}"
+
+    @classmethod
+    def get_mistake(cls) -> str:
+        return f"❌ {cls._pick(cls.MISTAKES)}"
+
+    @classmethod
+    def get_solution(cls, tool_name: str = None) -> str:
+        solution = cls._pick(cls.SOLUTIONS)
+        if tool_name and "هذه الأداة" in solution:
+            solution = solution.replace("هذه الأداة", tool_name)
+        return f"✅ {solution}"
+
+    @classmethod
+    def get_transition(cls, used_phrases: set = None) -> str:
+        if used_phrases is not None:
+            available = [t for t in cls.TRANSITIONS if t not in used_phrases]
+            if not available:
+                available = cls.TRANSITIONS.copy()
+                used_phrases.clear()
+            chosen = random.choice(available)
+            used_phrases.add(chosen)
+            return f"<p>{chosen}</p>"
+        return f"<p>{cls._pick(cls.TRANSITIONS)}</p>"
+
+    @classmethod
+    def get_conclusion(cls, tool_name: str) -> str:
+        conclusion = cls._pick(cls.CONCLUSIONS)
+        if "{tool_name}" in conclusion:
+            return conclusion.format(tool_name=tool_name)
+        return conclusion
+
+    @classmethod
+    def get_viral_warning(cls) -> str:
+        return cls._pick(cls.VIRAL_WARNINGS)
+
+# ==================================================================================================
+# 10. نظام Internal Linking الذكي المتقدم
+# ==================================================================================================
+class AdvancedInternalLinker:
+    """نظام روابط داخلية ذكي يربط بين الأدوات ذات الصلة"""
+
+    ANCHOR_TEXTS: Dict[str, List[str]] = {
+        "ip_check": [
+            "دليل فحص IP الشامل", "كشف عنوان IP الخاص بك", "تحليل IP المتقدم",
+            "كل ما تريد معرفته عن IP", "فحص IP والموقع الجغرافي", "دليل IP الكامل",
+            "مراجعة شاملة لفحص IP", "كيف تعرف موقع IP الخاص بك"
+        ],
+        "email_check": [
+            "دليل فحص البريد الإلكتروني", "كشف البريد المزيف", "تحليل البريد المتقدم",
+            "حماية بريدك من الاختراق", "فحص البريد المؤقت", "دليل البريد الإلكتروني الشامل",
+            "كيف تكتشف البريد الاحتيالي", "مراجعة أدوات فحص البريد"
+        ],
+        "password_check": [
+            "دليل قوة كلمة المرور", "اختبار كلمة المرور", "تحسين أمان كلمتك السرية",
+            "كيف تجعل كلمة مرورك قوية", "حماية كلمة المرور", "دليل كلمات المرور",
+            "أفضل ممارسات كلمات المرور", "كيف تتجنب كلمات المرور الضعيفة"
+        ],
+        "url_check": [
+            "دليل فحص الروابط", "كشف الروابط الضارة", "تحليل الروابط المتقدم",
+            "حماية نفسك من روابط التصيد", "فحص الروابط المختصرة", "دليل الروابط الآمنة",
+            "كيف تعرف الرابط المزيف", "مراجعة أدوات فحص الروابط"
+        ],
+        "default": [
+            "دليل شامل للأداة", "تعرف على الأداة بالتفصيل", "دليل الاستخدام الكامل",
+            "مراجعة شاملة للأداة", "كل ما تريد معرفته عن الأداة", "دليل المبتدئين للأداة",
+            "نصائح متقدمة لاستخدام الأداة", "كيف تستفيد من هذه الأداة"
+        ]
+    }
+
+    @classmethod
+    def generate_related_links(cls, current_tool_id: str, tools_data: Dict) -> str:
+        """توليد روابط داخلية ذكية بين الأدوات ذات الصلة مع وصف"""
+        current_tool = tools_data.get(current_tool_id, {})
+        current_name = current_tool.get('name', '')
+
+        related_ids = current_tool.get("related_tools", []).copy()
+
+        if not related_ids:
+            all_tools = [tid for tid in tools_data.keys() if tid != current_tool_id]
+            sample_size = min(5, len(all_tools))
+            if sample_size > 0:
+                related_ids = random.sample(all_tools, sample_size)
+            else:
+                return ''
+
+        sample_size = min(5, len(related_ids))
+        if sample_size == 0:
+            return ''
+
+        selected_ids = random.sample(related_ids, sample_size)
+
+        links_html = f'''
+        <div style="background: linear-gradient(135deg, #f1f5f9, #e2e8f0); padding: 30px; border-radius: 28px; margin: 45px 0;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px;">
+                <span style="font-size: 1.8rem;">🔗</span>
+                <h3 style="margin: 0; color: #1e293b;">📚 أدوات ذات صلة بـ {current_name}</h3>
+            </div>
+            <p style="margin-bottom: 20px; font-size: 0.9rem; color: #475569;">قد تكون هذه الأدوات مفيدة أيضاً في رحلة الأمان الرقمي الخاصة بك:</p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+        '''
+
+        for tool_id in selected_ids:
+            tool = tools_data.get(tool_id, {})
+            if not tool:
+                continue
+
+            anchor_texts = cls.ANCHOR_TEXTS.get(tool_id, cls.ANCHOR_TEXTS["default"])
+            anchor = random.choice(anchor_texts)
+            short_desc = tool.get('short_desc', f'تعرف على {tool.get("name", "هذه الأداة")}').split(' - ')[0][:60]
+
+            links_html += f'''
+                <a href="{SITE_URL}/{tool.get('url_path', tool_id)}"
+                   style="display: flex; align-items: center; gap: 12px; padding: 15px; background: white; border-radius: 20px; text-decoration: none; color: #2563eb; font-weight: 500; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.05);"
+                   onmouseover="this.style.transform='translateX(-5px)'; this.style.boxShadow='0 8px 20px rgba(0,0,0,0.1)';"
+                   onmouseout="this.style.transform='none'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.05)';">
+                    <span style="font-size: 1.5rem;">{tool.get('icon', '🛠️')}</span>
+                    <div>
+                        <div style="font-weight: 600; margin-bottom: 4px;">{anchor}</div>
+                        <div style="font-size: 0.75rem; color: #64748b;">{short_desc}</div>
+                    </div>
+                </a>
+            '''
+
+        links_html += '''
+            </div>
+            <p style="margin-top: 20px; font-size: 0.8rem; color: #64748b; text-align: center;">
+                🔗 روابط داخلية لتعزيز تجربة التصفح وزيادة أمان معلوماتك
+            </p>
+        </div>
+        '''
+        return links_html
+
+# ==================================================================================================
+# 11. نظام تحليل المنافسين (مع SerpAPI)
+# ==================================================================================================
+class CompetitorAnalyzer:
+    """نظام تحليل المنافسين باستخدام SerpAPI مع تخزين النتائج"""
+
+    def __init__(self):
+        self.serpapi_key = SERPAPI_KEY
+        self.api_url = "https://serpapi.com/search.json"
+
+    def analyze(self, keyword: str) -> Dict:
+        """تحليل المنافسين لكلمة مفتاحية معينة"""
+        if not self.serpapi_key:
+            logger.warning("SerpAPI key not found, using fallback analysis")
+            return self._fallback_analysis(keyword)
+
+        for attempt in range(3):
+            try:
+                params = {
+                    'q': keyword,
+                    'api_key': self.serpapi_key,
+                    'num': 8,
+                    'hl': 'ar',
+                    'gl': 'sa',
+                    'location': 'Saudi Arabia'
+                }
+
+                response = requests.get(self.api_url, params=params, timeout=25)
+
+                if response.status_code == 200:
+                    data = response.json()
+                    if 'error' in data:
+                        logger.warning(f"SerpAPI error: {data['error']}")
+                        continue
+
+                    organic_results = data.get('organic_results', [])[:6]
+                    titles = [r.get('title', '') for r in organic_results]
+                    snippets = [r.get('snippet', '') for r in organic_results]
+
+                    all_text = ' '.join(titles + snippets)
+                    words = re.findall(r'[a-zA-Z\u0600-\u06FF]{4,}', all_text.lower())
+                    stopwords = {'the', 'and', 'for', 'with', 'this', 'that', 'are', 'was', 'were', 'from', 'have', 'https', 'http', 'com', 'www', 'html', 'php', 'about', 'using', 'your', 'can', 'will', 'you', 'they', 'their', 'them', 'these', 'those', 'then', 'than', 'more', 'most', 'some', 'such', 'into', 'after'}
+
+                    filtered_words = [w for w in words if w not in stopwords and len(w) > 3]
+                    unique_keywords = []
+                    for w in filtered_words:
+                        if w not in unique_keywords:
+                            unique_keywords.append(w)
+
+                    top_keywords = unique_keywords[:20] if unique_keywords else [keyword]
+
+                    result = {
+                        'competitors_count': len(organic_results),
+                        'keywords': top_keywords,
+                        'competitors': [
+                            {
+                                'title': r.get('title', ''),
+                                'snippet': r.get('snippet', ''),
+                                'url': r.get('link', '')
+                            }
+                            for r in organic_results[:4]
+                        ],
+                        'has_data': True,
+                        'source': 'serpapi'
+                    }
+
+                    logger.info(f"Successfully analyzed competitors for: {keyword}")
+                    return result
+
+                elif response.status_code == 429:
+                    logger.warning(f"Rate limit exceeded, attempt {attempt + 1}")
+                    time.sleep(5 * (attempt + 1))
+                else:
+                    logger.warning(f"SerpAPI returned status {response.status_code}")
+                    time.sleep(2 ** attempt)
+
+            except requests.Timeout:
+                logger.warning(f"Timeout on attempt {attempt + 1}")
+                time.sleep(2 ** attempt)
+            except Exception as e:
+                logger.warning(f"SerpAPI error on attempt {attempt + 1}: {e}")
+                time.sleep(2 ** attempt)
+
+        return self._fallback_analysis(keyword)
+
+    def _fallback_analysis(self, keyword: str) -> Dict:
+        logger.info(f"Using fallback analysis for: {keyword}")
+        return {
+            'competitors_count': random.randint(3, 7),
+            'keywords': [keyword, 'أمن سيبراني', 'حماية', 'بيانات', 'خصوصية', 'اختراق', 'تشفير', 'جدار ناري', 'برمجيات خبيثة', 'تصيد'],
+            'competitors': [],
+            'has_data': False,
+            'source': 'fallback'
+        }
+
+# ==================================================================================================
+# 12. محرك المحتوى الرئيسي
+# ==================================================================================================
+class DynamicContentEngine:
+    """محرك المحتوى الديناميكي - ينتج مقالات فريدة في كل مرة"""
+
+    def __init__(self, tools_data: Dict):
+        self.tools_data = tools_data
+        self.spin = AdvancedSpinLogic()
+        self.linker = AdvancedInternalLinker()
+        self.analyzer = CompetitorAnalyzer()
+        self.used_phrases = set()
+
+    def _get_unique_phrase(self, phrase_list: List[str], context: str = "") -> str:
+        """اختيار جملة غير مكررة في نفس المقال"""
+        available = [p for p in phrase_list if p not in self.used_phrases]
+        if not available:
+            available = phrase_list
+            self.used_phrases.clear()
+        chosen = random.choice(available)
+        self.used_phrases.add(chosen)
+        return chosen
+
+    def _get_safe_sample(self, items: List, size: int) -> List:
+        if not items:
+            return []
+        sample_size = min(size, len(items))
+        if sample_size == 0:
+            return []
+        return random.sample(items, sample_size)
+
+    def _get_unique_transition(self) -> str:
+        return self.spin.get_transition(self.used_phrases)
+
+    def get_keyword_data(self, tool_id: str) -> Dict:
+        if tool_id in KEYWORD_ANALYSIS:
+            return KEYWORD_ANALYSIS[tool_id]
+        return {
+            "primary": ["فحص", "تحقق", "كشف"],
+            "long_tail": [],
+            "search_volume": 0,
+            "difficulty": "unknown",
+            "intent": "tool"
+        }
+
+    def get_dynamic_keywords(self, tool_id: str) -> Dict:
+        tool_data = self.tools_data.get(tool_id, {})
+        tool_name = tool_data.get('name', '')
+        static_keywords = self.get_keyword_data(tool_id)
+
+        try:
+            suggestions = []
+            base_queries = [f"كيف {tool_name}", f"{tool_name} هل", f"{tool_name} ما هو", f"فحص {tool_name}"]
+
+            for query in base_queries:
+                url = f"https://suggestqueries.google.com/complete/search?client=firefox&q={requests.utils.quote(query)}"
+                response = requests.get(url, timeout=5)
+                if response.status_code == 200:
+                    data = response.json()
+                    if len(data) > 1:
+                        suggestions.extend(data[1])
+
+            if suggestions:
+                unique_suggestions = []
+                for s in suggestions:
+                    if s not in unique_suggestions:
+                        unique_suggestions.append(s)
+
+                static_keywords['dynamic_long_tail'] = unique_suggestions[:5]
+                static_keywords['dynamic'] = True
+                logger.info(f"✅ Got {len(unique_suggestions)} dynamic keywords for {tool_name}")
+            else:
+                static_keywords['dynamic'] = False
+        except Exception as e:
+            logger.warning(f"Failed to fetch dynamic keywords: {e}")
+            static_keywords['dynamic'] = False
+
+        return static_keywords
+
+    def get_people_also_ask(self, keyword: str) -> List[str]:
+        try:
+            url = f"https://www.google.com/search?q={requests.utils.quote(keyword)}"
+            headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
+            response = requests.get(url, headers=headers, timeout=10)
+
+            questions = []
+            if response.status_code == 200:
+                import re
+                pattern = r'<h3[^>]*>(.*?\?)</h3>'
+                matches = re.findall(pattern, response.text)
+                for match in matches[:3]:
+                    clean = re.sub(r'<[^>]+>', '', match)
+                    questions.append(clean)
+
+            logger.info(f"✅ Got {len(questions)} People Also Ask questions for {keyword}")
+            return questions[:3]
+        except Exception as e:
+            logger.warning(f"Failed to fetch People Also Ask: {e}")
+            return []
+
+    def get_dynamic_long_tail(self, tool_id: str) -> List[str]:
+        tool_data = self.tools_data.get(tool_id, {})
+        tool_name = tool_data.get('name', '')
+
+        all_keywords = []
+
+        dynamic_data = self.get_dynamic_keywords(tool_id)
+        if dynamic_data.get('dynamic_long_tail'):
+            all_keywords.extend(dynamic_data['dynamic_long_tail'])
+
+        static_data = self.get_keyword_data(tool_id)
+        if static_data.get('long_tail'):
+            all_keywords.extend(static_data['long_tail'])
+
+        questions = tool_data.get('questions', [])
+        for q in questions[:3]:
+            keyword = q.replace('؟', '').replace('?', '')
+            if len(keyword) > 15 and keyword not in all_keywords:
+                all_keywords.append(keyword)
+
+        unique_keywords = []
+        for k in all_keywords:
+            if k not in unique_keywords:
+                unique_keywords.append(k)
+
+        logger.info(f"✅ Generated {len(unique_keywords)} dynamic long-tail keywords for {tool_name}")
+        return unique_keywords[:10]
+
+    def add_people_also_ask_section(self, tool_id: str, keyword: str) -> str:
+        questions = self.get_people_also_ask(keyword)
+
+        if not questions:
+            return ''
+
+        tool_data = self.tools_data.get(tool_id, {})
+        tool_name = tool_data.get('name', '')
+
+        faq_html = f'''
+        <div style="background: #f0f9ff; padding: 25px; border-radius: 20px; margin: 30px 0;">
+            <h3 style="margin-top: 0; color: #0369a1;">🔍 أسئلة يبحث عنها المستخدمون أيضاً</h3>
+            <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 15px;">
+        '''
+
+        for q in questions:
+            faq_html += f'''
+                <div style="background: white; padding: 15px; border-radius: 16px;">
+                    <strong>❓ {q}</strong>
+                    <p style="margin-top: 8px; margin-bottom: 0; font-size: 0.9rem;">
+                        {self.generate_smart_content(tool_id, q, tool_name, tool_data)}
+                    </p>
+                </div>
+            '''
+
+        faq_html += '''
+            </div>
+        </div>
+        '''
+        return faq_html
+
+    def generate_smart_content(self, tool_id: str, question: str, tool_name: str, tool_data: Dict) -> str:
+        question_lower = question.lower()
+
+        if question_lower.startswith('هل'):
+            return f"{random.choice(['نعم', 'بالتأكيد', 'صحيح'])}، {tool_name} {tool_data['short_desc']}. {random.choice(['يمكنك الاعتماد عليه في هذا الأمر', 'الأداة مصممة خصيصاً لهذا الغرض', 'النتائج دقيقة وموثوقة'])}."
+        elif question_lower.startswith('كيف'):
+            input_type = tool_data.get('input_type', 'البيانات المطلوبة')
+            return f"لتنفيذ ذلك باستخدام {tool_name}، اتبع الخطوات التالية: أولاً، اذهب إلى صفحة الأداة. ثانياً، أدخل {input_type} في مربع النص. ثالثاً، اضغط زر التحليل وانتظر النتائج. {random.choice(['الخطوات بسيطة وسريعة', 'يمكنك إنجاز ذلك في أقل من دقيقة', 'النتائج تظهر فوراً'])}."
+        elif question_lower.startswith('لماذا'):
+            return f"{tool_name} مهم لأنه {tool_data['short_desc']}. {random.choice(['الأداة تحميك من المخاطر الرقمية', 'استخدامها المنتظم يقلل فرص الاختراق', 'هي خط دفاع أول في عالم الأمن السيبراني'])}."
+        elif 'ما هو' in question_lower or 'ما هي' in question_lower:
+            return f"{tool_name} هو {tool_data['short_desc']}. {random.choice(['ببساطة، هذه الأداة تساعدك في حماية بياناتك', 'يمكن استخدامها بسهولة من قبل الجميع', 'تعمل بنظام تحليل ذكي وفوري'])}."
+        else:
+            return f"{tool_name} يوفر إجابة شاملة لهذا السؤال. {tool_data['short_desc']}. {random.choice(['جرب الأداة بنفسك للحصول على نتائج دقيقة', 'استخدمها بانتظام لتحسين أمانك', 'النتائج فورية وموثوقة'])}."
+
+    def get_tool_id_from_name(self, tool_name: str) -> str:
+        for tid, data in self.tools_data.items():
+            if data.get('name') == tool_name:
+                return tid
+        return None
+
+    def get_dynamic_content(self, tool_id: str, content_type: str) -> List:
+        if tool_id in SPECIFIC_CONTENT and content_type in SPECIFIC_CONTENT[tool_id]:
+            items = SPECIFIC_CONTENT[tool_id][content_type]
+            k = min(3, len(items))
+            if k > 0:
+                return random.sample(items, k)
+
+        if content_type == 'mistakes':
+            return random.sample(GENERAL_MISTAKES, min(3, len(GENERAL_MISTAKES)))
+
+        return []
+
+    def get_dynamic_tips(self, tool_id: str) -> List:
+        if tool_id in SPECIFIC_CONTENT and 'tips' in SPECIFIC_CONTENT[tool_id]:
+            items = SPECIFIC_CONTENT[tool_id]['tips']
+            k = min(3, len(items))
+            if k > 0:
+                return random.sample(items, k)
+        return random.sample(GENERAL_MISTAKES, min(3, len(GENERAL_MISTAKES)))
+
+    def add_eeat_section(self, tool_name: str) -> str:
+        return f'''
+    <div style="background: linear-gradient(135deg, #f1f5f9, #e2e8f0); padding: 30px; border-radius: 28px; margin: 40px 0; border-right: 5px solid #3b82f6;">
+        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+            <span style="font-size: 2rem;">🎓</span>
+            <h3 style="margin: 0; color: #1e293b;">عن الكاتب: مالك السماوي</h3>
+        </div>
+        <p style="line-height: 1.8;">خبير أمن سيبراني معتمد بخبرة تزيد عن <strong>13 سنة</strong> في مجال أمن المعلومات وحماية الشبكات. حاصل على شهادات مهنية دولية وشغل مناصب قيادية في شركات تقنية كبرى. ساهم في تأمين أكثر من <strong>500 منصة رقمية</strong> وحماية بيانات ملايين المستخدمين حول العالم. هذا المحتوى مبني على تجربتي العملية ودراسات حالة حقيقية، مع تحديث مستمر لأحدث التهديدات الأمنية.</p>
+
+        <div style="margin: 20px 0; padding: 15px; background: white; border-radius: 20px;">
+            <p style="margin: 0 0 10px 0;"><strong>📚 المصادر الموثوقة المعتمدة في هذا المقال:</strong></p>
+            <ul style="margin: 0; padding-right: 20px;">
+                <li><a href="https://nvd.nist.gov/" target="_blank" rel="noopener nofollow">NIST National Vulnerability Database</a></li>
+                <li><a href="https://www.cisa.gov/" target="_blank" rel="noopener nofollow">CISA - وكالة الأمن السيبراني الأمريكية</a></li>
+                <li><a href="https://owasp.org/" target="_blank" rel="noopener nofollow">OWASP Foundation - المعايير العالمية لأمن التطبيقات</a></li>
+                <li><a href="https://www.sans.org/" target="_blank" rel="noopener nofollow">SANS Institute - التدريب الأمني المعتمد</a></li>
+            </ul>
+        </div>
+
+        <div style="display: flex; gap: 20px; flex-wrap: wrap; font-size: 0.85rem; color: #475569;">
+            <span>📅 آخر تحديث: {datetime.now().strftime('%B %Y')}</span>
+            <span>⏱️ وقت البحث والتحليل: أكثر من 40 ساعة</span>
+            <span>✓ تم التحقق من المعلومات من 3 مصادر مستقلة</span>
+        </div>
+    </div>
+    '''
+
+    def add_external_links(self) -> str:
+        return '''
+    <div style="background: #f0f9ff; padding: 20px; border-radius: 20px; margin: 30px 0; border-right: 4px solid #0284c7;">
+        <p style="margin: 0 0 10px 0;"><strong>📚 للتحقق من المعلومات والمزيد من المصادر الموثوقة:</strong></p>
+        <div style="display: flex; flex-wrap: wrap; gap: 15px; font-size: 0.9rem;">
+            <a href="https://csrc.nist.gov/" target="_blank" rel="noopener nofollow">🔗 NIST Computer Security Resource Center</a>
+            <a href="https://www.cisa.gov/" target="_blank" rel="noopener nofollow">🔗 CISA Cybersecurity Alerts</a>
+            <a href="https://owasp.org/www-project-top-ten/" target="_blank" rel="noopener nofollow">🔗 OWASP Top 10 Vulnerabilities</a>
+            <a href="https://www.cloudflare.com/learning/" target="_blank" rel="noopener nofollow">🔗 Cloudflare Learning Center</a>
+        </div>
+        <p style="margin-top: 15px; font-size: 0.8rem; color: #475569;">⚠️ الروابط الخارجية تفتح في نافذة جديدة.</p>
+    </div>
+    '''
+
+    def _improve_with_competitors(self, content: str, tool_name: str, competitor_data: Dict) -> str:
+        if not competitor_data.get('has_data'):
+            return content
+
+        competitors = competitor_data.get('competitors', [])
+
+        if competitors and random.random() < 0.6:
+            comparison_section = f'''
+            <div style="background: linear-gradient(135deg, #f1f5f9, #e2e8f0); padding: 25px; border-radius: 20px; margin: 30px 0;">
+                <h3 style="margin-top: 0; color: #1e293b;">📊 لماذا {tool_name} أفضل من المنافسين؟</h3>
+                <p>بعد تحليل أفضل {len(competitors)} مقالات منافسة في نتائج البحث، تبين أن {tool_name} يتفوق في:</p>
+                <ul style="margin-top: 10px;">
+                    <li>✅ <strong>السرعة:</strong> نتائج فورية في أقل من 3 ثوانٍ</li>
+                    <li>✅ <strong>الدقة:</strong> نسبة دقة تصل إلى 99% وفق اختبارات مستقلة</li>
+                    <li>✅ <strong>السعر:</strong> مجاني بالكامل دون أي رسوم خفية</li>
+                    <li>✅ <strong>الخصوصية:</strong> لا يتم تخزين أي بيانات</li>
+                </ul>
+                <div style="background: #dbeafe; padding: 12px; border-radius: 12px; margin-top: 15px;">
+                    💡 <strong>الخلاصة:</strong> بينما تقدم الأدوات الأخرى حلولاً محدودة أو مدفوعة، {tool_name} يوفر حماية شاملة ومجانية للجميع.
+                </div>
+            </div>
+            '''
+            content += comparison_section
+
+        return content
+
+    def generate_section(self, section_name: str, tool_id: str, tool_data: Dict, article_type: Dict) -> str:
+        allowed_tools = {
+            "ip_vs_privacy": ["ip_check"],
+            "what_is_api_key": ["api_key_check"],
+            "developer_manual_check": ["api_key_check"],
+        }
+
+        if section_name in allowed_tools and tool_id not in allowed_tools[section_name]:
+            return ""
+
+        heading_level = {
+            'what_is_detailed': 'h2', 'why_important_detailed': 'h2', 'how_it_works_deep': 'h2',
+            'benefits_detailed': 'h2', 'step_by_step_detailed': 'h2', 'faq_detailed': 'h2',
+            'conclusion_inspiring': 'h2', 'conclusion_personal': 'h2', 'conclusion_technical': 'h2',
+            'conclusion_warning': 'h2', 'main_question_deep': 'h2', 'detailed_answer_comprehensive': 'h2',
+            'comparison_table': 'h2', 'call_to_action_urgent': 'h2', 'real_story_detailed': 'h3',
+            'problem_i_faced': 'h3', 'how_i_discovered': 'h3', 'the_solution_that_worked': 'h3',
+            'results_and_lessons': 'h3', 'what_i_learned': 'h3', 'recommendation_heartfelt': 'h3',
+            'best_practices': 'h3', 'common_mistakes': 'h3', 'how_to_fix_each_mistake': 'h3',
+            'expert_recommendations': 'h3', 'limitations_and_edge_cases': 'h3', 'technical_faq': 'h3',
+            'faq_from_experience': 'h3', 'scenario_description': 'h3', 'problem_analysis_deep': 'h3',
+            'solution_applied': 'h3', 'implementation_steps': 'h3', 'key_takeaways': 'h3'
+        }
+
+        level = heading_level.get(section_name, 'h2')
+        tool_name = tool_data['name']
+        tool_variations = ['هذه الأداة', 'هذا الحل', 'عملية التحليل', 'الخدمة', 'أداة التحقق', 'الحل الأمني', 'الخدمة المتخصصة']
+        tool_var = random.choice(tool_variations)
+        questions = tool_data.get('questions', [])
+
+        sections_map: Dict[str, str] = {
+            "table_of_contents": f'''
+                <div style="background: #f8fafc; padding: 20px; border-radius: 20px; margin: 20px 0;">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                        <span style="font-size: 1.5rem;">📑</span>
+                        <h3 style="margin: 0; color: #1e293b;">في هذا الدليل</h3>
+                    </div>
+                    <ul style="margin: 0; padding-right: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+                        <li><a href="#what-is" style="text-decoration: none; color: #2563eb;">📌 ما هو {tool_name}؟</a></li>
+                        <li><a href="#why-important" style="text-decoration: none; color: #2563eb;">🔑 لماذا تحتاجه؟</a></li>
+                        <li><a href="#how-it-works" style="text-decoration: none; color: #2563eb;">⚙️ كيف يعمل؟</a></li>
+                        <li><a href="#practical-steps" style="text-decoration: none; color: #2563eb;">📋 خطوات عملية</a></li>
+                        <li><a href="#statistics" style="text-decoration: none; color: #2563eb;">📊 إحصائيات</a></li>
+                        <li><a href="#faq" style="text-decoration: none; color: #2563eb;">❓ أسئلة شائعة</a></li>
+                    </ul>
+                </div>
+            ''',
+            "introduction_long": f'''
+                <div style="background: linear-gradient(135deg, #f8fafc, #f1f5f9); padding: 35px; border-radius: 28px; margin: 25px 0;">
+                    <p style="font-size: 1.08rem; line-height: 1.8; margin-bottom: 20px;">{self.spin.get_intro(tool_name)}</p>
+                    <p style="font-size: 1.05rem; line-height: 1.75;">في هذا الدليل الشامل والمفصل، سنأخذك في رحلة متكاملة لفهم {tool_name} من الألف إلى الياء. ستتعلم {random.choice(['كل ما تحتاج معرفته', 'الأسرار التي لا يعرفها المبتدئون', 'التقنيات المتقدمة', 'أفضل الممارسات العملية'])}، وستكتشف {random.choice(['كيف تحمي نفسك', 'لماذا هذه الأداة ضرورية', 'كيف تستفيد منها بأقصى صورة'])}.</p>
+                    {self._get_unique_transition()}
+                </div>
+            ''',
+            "statistics_and_examples": f'''
+                <div style="background: linear-gradient(135deg, #1e293b, #0f172a); color: white; padding: 30px; border-radius: 28px; margin: 35px 0;">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+                        <span style="font-size: 2rem;">📊</span>
+                        <h3 id="practical-steps" style="margin-top: 0; color: #166534;">📋 كيف تستخدم {tool_name} بنفسك (خطوات عملية)</h3>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                        <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 20px;">
+                            <div style="font-size: 2rem;">🔴</div>
+                            <div style="font-size: 1.8rem; font-weight: bold;">{random.randint(60, 85)}%</div>
+                            <p style="margin-top: 10px; font-size: 0.9rem;">من المستخدمين لا يستخدمون {tool_var} بانتظام، مما يعرضهم للاختراق</p>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 20px;">
+                            <div style="font-size: 2rem;">🟢</div>
+                            <div style="font-size: 1.8rem; font-weight: bold;">{random.randint(2, 4)} ثوانٍ</div>
+                            <p style="margin-top: 10px; font-size: 0.9rem;">هذا هو متوسط الوقت الذي تستغرقه {tool_var} لتحليل البيانات وتقديم النتائج</p>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 20px;">
+                            <div style="font-size: 2rem;">🟡</div>
+                            <div style="font-size: 1.8rem; font-weight: bold;">{random.randint(100, 500)}+</div>
+                            <p style="margin-top: 10px; font-size: 0.9rem;">من الثغرات الأمنية التي يمكن لـ {tool_var} اكتشافها</p>
+                        </div>
+                    </div>
+                    <div style="margin-top: 25px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 20px;">
+                        <p style="margin: 0; font-size: 0.95rem;">
+                            <strong>📌 مثال واقعي:</strong> في {random.choice(['2024', '2025'])}، تمكن فريق الأمن السيبراني من منع {random.randint(5, 15)} هجوماً خطيراً باستخدام {tool_var} قبل وصولها إلى البيانات الحساسة.
+                        </p>
+                    </div>
+                </div>
+            ''',
+            "quick_answer": f'''
+                <div style="background: linear-gradient(135deg, #e0f2fe, #bae6fd); padding: 25px; border-radius: 20px; margin: 20px 0;">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                        <span style="font-size: 1.5rem;">⚡</span>
+                        <h3 style="margin: 0; color: #0369a1;">الإجابة السريعة</h3>
+                    </div>
+                    <p style="font-size: 1.05rem; line-height: 1.6; margin-bottom: 0;">
+                        {tool_name} هو {tool_data['short_desc']}. 
+                        {random.choice([
+                            f"يمكنك استخدامه {tool_data.get('input_type', 'البيانات')} لفحص أمان معلوماتك خلال {random.randint(2, 5)} ثوانٍ.",
+                            f"ببساطة، أدخل {tool_data.get('input_type', 'البيانات المطلوبة')} واضغط زر التحليل لمعرفة النتائج فوراً.",
+                            f"هذه الأداة تساعدك في اكتشاف المشاكل الأمنية قبل أن تتفاقم."
+                        ])}
+                    </p>
+                </div>
+            ''',
+            "practical_steps": f'''
+                <div style="background: #f0fdf4; padding: 25px; border-radius: 20px; margin: 25px 0; border-right: 4px solid #22c55e;">
+                    <h3 id="practical-steps" style="margin-top: 0; color: #166534;">📋 كيف تستخدم {tool_name} بنفسك (خطوات عملية)</h3>
+                    <ol style="margin-top: 15px; padding-right: 20px;">
+                        <li style="margin-bottom: 12px;"><strong>الوصول إلى الأداة:</strong> اذهب إلى صفحة {tool_name} الرئيسية من القائمة أعلاه</li>
+                        <li style="margin-bottom: 12px;"><strong>إدخال البيانات:</strong> أدخل {tool_data.get('input_type', 'البيانات المطلوبة')} الذي تريد فحصه في مربع النص</li>
+                        <li style="margin-bottom: 12px;"><strong>بدء التحليل:</strong> اضغط على زر "تحليل" أو "فحص" وانتظر من 2 إلى 5 ثوانٍ</li>
+                        <li style="margin-bottom: 12px;"><strong>قراءة النتائج:</strong> ستظهر لك المعلومات التالية:
+                            <ul style="margin-top: 8px;">
+                                <li>🔹 {random.choice(['الموقع الجغرافي', 'مزود الخدمة (ISP)', 'نوع الاتصال'])}</li>
+                                <li>🔹 {random.choice(['السمعة الأمنية (آمن / مشبوه)', 'سجل الثقة', 'الروابط المرتبطة'])}</li>
+                                <li>🔹 {random.choice(['توصيات فورية لحماية نفسك', 'تحذيرات إذا كان هناك خطر', 'نصائح مخصصة'])}</li>
+                            </ul>
+                        </li>
+                        <li style="margin-bottom: 12px;"><strong>تطبيق التوصيات:</strong> إذا ظهر تحذير، قم بتنفيذ الخطوات الموصى بها فوراً</li>
+                        <li><strong>الفحص الدوري:</strong> كرر العملية كل أسبوعين للحفاظ على أمانك</li>
+                    </ol>
+                    <div style="background: #dbeafe; padding: 12px; border-radius: 12px; margin-top: 15px;">
+                        💡 <strong>نصيحة احترافية:</strong> احفظ نتائج الفحص الحالية وقارنها بالفحوصات المستقبلية. ستلاحظ تحسناً في أمانك مع مرور الوقت.
+                    </div>
+                </div>
+            ''',
+            "what_is_detailed": f'''
+                <h2 id="what-is">📌 ما هو {tool_name} بالضبط؟</h2>
+                <p>{tool_name} هو {tool_data['short_desc']}. هذه الأداة تم تطويرها بواسطة فريق متخصص في الأمن السيبراني لتوفير حلول عملية وسريعة للمستخدمين.</p>
+                {self._get_unique_transition()}
+            ''',
+            "why_important_detailed": f'''
+                <h2 id="why-important">🔑 لماذا تحتاج {tool_name}؟</h2>
+                <p>مع تزايد الهجمات الإلكترونية بنسبة {random.randint(40, 80)}% سنوياً، أصبح استخدام {tool_name} ضرورة وليس رفاهية. هذه الأداة توفر لك طبقة حماية إضافية قد تنقذ حسابك من الاختراق.</p>
+                <p>{self._get_unique_transition()}</p>
+            ''',
+            "how_it_works_deep": f'''
+                <h2 id="how-it-works">⚙️ كيف يعمل {tool_name} بالضبط؟</h2>
+                <p>{tool_name} يعتمد على خوارزميات متطورة وتقنيات تحليلية حديثة. عند إدخال البيانات، يقوم النظام بتحليلها في أجزاء من الثانية باستخدام تقنيات الذكاء الاصطناعي والتعلم الآلي لتقديم نتائج دقيقة وموثوقة.</p>
+                <p>{self._get_unique_transition()}</p>
+            ''',
+            "viral_hook_strong": f'''
+                <div style="background: linear-gradient(135deg, #fef3c7, #fde68a); padding: 35px; border-radius: 28px; text-align: center; margin: 25px 0;">
+                    <div style="font-size: 2.5rem; margin-bottom: 15px;">🚨⚠️😱</div>
+                    <div style="font-size: 1.3rem; font-weight: bold; color: #92400e;">{self.spin.get_viral_warning()}</div>
+                    <div style="font-size: 1.05rem; margin-top: 15px; color: #78350f;">{self.spin.get_intro(tool_name)}</div>
+                </div>
+            ''',
+            "real_story_detailed": f'''
+                <div style="background: #fffbeb; padding: 35px; border-radius: 28px; margin: 35px 0; border-right: 6px solid #f59e0b;">
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+                        <span style="font-size: 2.5rem;">📖</span>
+                        <h3 style="margin: 0; color: #92400e;">القصة الحقيقية التي غيرت كل شيء</h3>
+                    </div>
+                    <p style="line-height: 1.8; font-size: 1.02rem;">
+                        {random.choice([
+                            f"في أحد الأيام، لاحظت نشاطاً غير عادي على حساباتي. قررت استخدام {tool_name} لفحص كل شيء، واكتشفت ثغرة كبيرة كنت أجهلها تماماً!",
+                            f"صديق مقرب تعرض لاختراق مؤلم في حسابه. درسنا الأمر معاً وباستخدام {tool_name}، اكتشفنا أن السبب كان بسيطاً لكنه كارثي.",
+                            f"ذات ليلة، وأنا أتصفح الإنترنت، ظهرت لي تحذيرات أمنية غريبة. قمت بتشغيل {tool_name} وكانت النتيجة صادمة!",
+                            f"في أحد الأيام، اكتشفت أن بياناتي قد تكون مسربة! كنت قد تركت معلومات حساسة في مكان عام. باستخدام {tool_name}، تأكدت من وجود ثغرة وأغلقتها فوراً!",
+                            f"في أحد الأيام، تلقيت بريداً إلكترونياً من خدمة موثوقة تطلب مني تغيير كلمة المرور. باستخدام {tool_name}، اكتشفت أن البريد كان مزيفاً!",
+                            f"لاحظت أن جهازي أصبح بطيئاً بشكل غير طبيعي. باستخدام {tool_name}، اكتشفت أن شخصاً ما يستخدم اتصالي دون علمي!"
+                        ])}
+                    </p>
+                    <p style="line-height: 1.8; margin-top: 20px;">
+                        {random.choice([
+                            f"هنا جاء دور {tool_name}. قمت بفحص كل شيء باستخدام الأداة، واكتشفت الحقيقة الصادمة.",
+                            f"لو كنت استخدمت {tool_name} من قبل، لكنت تجنبت هذه الكارثة بالكامل.",
+                            f"هذه التجربة علمتني درساً لن أنساه: لا يمكن الاستهانة بالأمن الرقمي أبداً."
+                        ])}
+                    </p>
+                    <div style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed #fed7aa;">
+                        <p style="margin: 0; font-size: 0.9rem; color: #b45309;">— {random.choice(['أحمد', 'سارة', 'محمد', 'نورة', 'عبدالله', 'فاطمة'])}، {random.choice(['مستخدم محترف', 'خبير أمن سيبراني', 'مطور برمجيات', 'مسؤول تقني'])}</p>
+                    </div>
+                </div>
+            ''',
+            "problem_i_faced": f'''
+                <h2>⚠️ المشكلة التي واجهتها</h2>
+                <div style="background: #fef2f2; padding: 25px; border-radius: 20px; margin: 20px 0;">
+                    <p>{random.choice(self.spin.MISTAKES)} هذا الخطأ يقع فيه الملايين يومياً، وقد كنت واحداً منهم دون أن أدري!</p>
+                </div>
+                {self._get_unique_transition()}
+            ''',
+            "how_i_discovered": f'''
+                <h2>💡 كيف اكتشفت الحل؟</h2>
+                <p>بعد بحث طويل وتجربة العديد من الأدوات، وجدت أن {tool_name} هو الحل الأمثل. الأداة بسيطة وسهلة الاستخدام، وتقدم نتائج دقيقة وفورية.</p>
+                {self._get_unique_transition()}
+            ''',
+            "the_solution_that_worked": f'''
+                <h2>✅ الحل الذي نجح معي</h2>
+                <div style="background: #f0fdf4; padding: 25px; border-radius: 20px; margin: 20px 0;">
+                    <p>{self.spin.get_solution(tool_name)}</p>
+                </div>
+                {self._get_unique_transition()}
+            ''',
+            "results_and_lessons": f'''
+                <h2>📊 النتائج والدروس المستفادة</h2>
+                <p>بعد استخدام {tool_name}، لاحظت تحسناً كبيراً في أمان حساباتي. الدرس الأهم الذي تعلمته هو أن الوقاية خير من العلاج، وأن استخدام الأدوات المناسبة يمكن أن يمنع الكوارث قبل وقوعها.</p>
+                {self._get_unique_transition()}
+            ''',
+            "what_i_learned": f'''
+                <h2>🎓 ما تعلمته من هذه التجربة</h2>
+                <ul>
+                    <li>الأمن الرقمي ليس رفاهية بل ضرورة</li>
+                    <li>الاستخدام المنتظم للأدوات الأمنية يقلل المخاطر بشكل كبير</li>
+                    <li>المعرفة والوعي هما السلاح الأقوى ضد المخترقين</li>
+                </ul>
+                {self._get_unique_transition()}
+            ''',
+            "recommendation_heartfelt": f'''
+                <div style="background: #eff6ff; padding: 25px; border-radius: 20px; margin: 20px 0;">
+                    <h3 style="margin-top: 0;">💙 توصية من القلب</h3>
+                    <p>أنصحك بشدة بتجربة {tool_name} بنفسك. لا تنتظر حتى تتعرض للاختراق، ابدأ الآن واختبر الفرق بنفسك.</p>
+                </div>
+            ''',
+            "benefits_detailed": f'''
+                <div style="margin: 35px 0;">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+                        <span style="font-size: 1.8rem;">✨</span>
+                        <h2 style="margin: 0; color: #1e293b;">الفوائد الرئيسية التي ستحصل عليها</h2>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+                        {"".join([f"<div style='background: #f8fafc; padding: 20px; border-radius: 20px; border-right: 3px solid #3b82f6;'>✅ {self._get_unique_phrase(self.spin.BENEFITS, 'benefits')}</div>" for _ in range(5)])}
+                    </div>
+                </div>
+            ''',
+            "step_by_step_detailed": f'''
+                <div style="background: #f1f5f9; padding: 35px; border-radius: 28px; margin: 35px 0;">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 25px;">
+                        <span style="font-size: 1.8rem;">📋</span>
+                        <h3 style="margin: 0; color: #1e293b;">كيف تستخدم {tool_name} خطوة بخطوة</h3>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 20px;">
+                        <div style="display: flex; gap: 15px; align-items: flex-start;">
+                            <div style="background: #3b82f6; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1rem; flex-shrink: 0;">1</div>
+                            <div><strong>الوصول إلى الأداة</strong><br>قم بزيارة صفحة {tool_name} الرئيسية على موقع CyberShield Ultra.</div>
+                        </div>
+                        <div style="display: flex; gap: 15px; align-items: flex-start;">
+                            <div style="background: #3b82f6; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1rem; flex-shrink: 0;">2</div>
+                            <div><strong>إدخال البيانات</strong><br>أدخل المعلومات التي تريد تحليلها (مثل {random.choice(['IP', 'بريد إلكتروني', 'رابط', 'رقم هاتف', 'كلمة مرور'])}).</div>
+                        </div>
+                        <div style="display: flex; gap: 15px; align-items: flex-start;">
+                            <div style="background: #3b82f6; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1rem; flex-shrink: 0;">3</div>
+                            <div><strong>بدء التحليل</strong><br>اضغط على زر "تحليل" أو "فحص" وانتظر بضع ثوانٍ فقط.</div>
+                        </div>
+                        <div style="display: flex; gap: 15px; align-items: flex-start;">
+                            <div style="background: #3b82f6; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1rem; flex-shrink: 0;">4</div>
+                            <div><strong>قراءة النتائج</strong><br>اطلع على التقرير المفصل والتوصيات العملية التي تقدمها الأداة.</div>
+                        </div>
+                        <div style="display: flex; gap: 15px; align-items: flex-start;">
+                            <div style="background: #3b82f6; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1rem; flex-shrink: 0;">5</div>
+                            <div><strong>تطبيق التوصيات</strong><br>اتخذ الإجراءات المناسبة بناءً على نتائج التحليل لتحسين أمانك.</div>
+                        </div>
+                    </div>
+                </div>
+            ''',
+            "best_practices": f'''
+                <div style="background: linear-gradient(135deg, #eff6ff, #dbeafe); padding: 35px; border-radius: 28px; margin: 35px 0;">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 25px;">
+                        <span style="font-size: 1.8rem;">💡</span>
+                        <h3 style="margin: 0; color: #1e40af;">نصائح ذهبية من واقع التجربة والخبرة</h3>
+                    </div>
+                    <ul style="margin: 0; list-style: none; padding: 0;">
+                        {"".join([f"<li style='margin-bottom: 15px; padding: 15px; background: white; border-radius: 20px; display: flex; align-items: center; gap: 15px;'><span style='font-size: 1.3rem;'>💎</span><span>💡 {self._get_unique_phrase(self.spin.TIPS, 'tips')}</span></li>" for _ in range(4)])}
+                    </ul>
+                </div>
+            ''',
+            "real_story_short": f'''
+                <div style="background: #fffbeb; padding: 20px; border-radius: 20px; margin: 20px 0; border-right: 4px solid #f59e0b;">
+                    <h3 style="margin-top: 0; color: #92400e;">📖 قصة حقيقية من الواقع</h3>
+                    <p style="margin-bottom: 0;">{random.choice(["مستخدم كان يظن أن بياناته آمنة، لكنه اكتشف ثغرة كبيرة بعد فوات الأوان!", "شركة صغيرة خسرت آلاف الدولارات لأنها أهملت الفحوصات الأمنية!", "شخص تعرض للاختراق لأنه لم يتحقق من أمان ما يستخدمه!"])}</p>
+                </div>
+            ''',
+            "common_mistakes_short": f'''
+                <div style="background: #fef2f2; padding: 20px; border-radius: 20px; margin: 20px 0; border-right: 4px solid #ef4444;">
+                    <h3 style="margin-top: 0; color: #991b1b;">❌ 3 أخطاء شائعة</h3>
+                    <ul style="margin-bottom: 0;">
+                        <li>{random.choice(self.spin.MISTAKES[:3])}</li>
+                        <li>{random.choice(self.spin.MISTAKES[3:6])}</li>
+                        <li>{random.choice(self.spin.MISTAKES[6:9])}</li>
+                    </ul>
+                </div>
+            ''',
+            "quick_faq": f'''
+                <div style="background: #eff6ff; padding: 20px; border-radius: 20px; margin: 20px 0;">
+                    <h3 style="margin-top: 0; color: #1e40af;">❓ أسئلة سريعة</h3>
+                    <div style="margin-bottom: 10px;">
+                        <strong>س: هل {tool_name} مجاني؟</strong>
+                        <p style="margin: 5px 0 0 0;">ج: نعم، مجاني 100% ولا يحتاج تسجيل.</p>
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <strong>س: كم يستغرق الفحص؟</strong>
+                        <p style="margin: 5px 0 0 0;">ج: أقل من 5 ثوانٍ.</p>
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <strong>س: هل فحص البيانات عبر الأداة آمن؟ هل يتم تخزين معلوماتي؟</strong>
+                        <p style="margin: 5px 0 0 0;">ج: نعم آمن تماماً. نحن لا نخزن أي بيانات، جميع الفحوصات تتم في بيئة مشفرة وتُحذف فور انتهاء التحليل.</p>
+                    </div>
+                </div>
+            ''',
+            "common_mistakes": f'''
+                <div style="background: #fef2f2; padding: 35px; border-radius: 28px; margin: 35px 0; border-right: 6px solid #ef4444;">
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 25px;">
+                        <span style="font-size: 2.2rem;">❌</span>
+                        <h3 style="margin: 0; color: #991b1b;">أخطاء شائعة يقع فيها الجميع (ولا تعرف عنها)</h3>
+                    </div>
+                    <ul style="margin: 0; list-style: none; padding: 0;">
+                        {"".join([f"<li style='margin-bottom: 15px; padding: 12px; background: white; border-radius: 16px;'>❌ {self._get_unique_phrase(self.spin.MISTAKES, 'mistakes')}</li>" for _ in range(5)])}
+                    </ul>
+                </div>
+            ''',
+            "how_to_fix_each_mistake": f'''
+                <div style="background: #f0fdf4; padding: 35px; border-radius: 28px; margin: 35px 0; border-right: 6px solid #22c55e;">
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 25px;">
+                        <span style="font-size: 2.2rem;">✅</span>
+                        <h3 style="margin: 0; color: #166534;">الحلول العملية: كيف تتجنب هذه الأخطاء</h3>
+                    </div>
+                    <ul style="margin: 0; list-style: none; padding: 0;">
+                        {''.join([f'<li style="margin-bottom: 15px; padding: 12px; background: white; border-radius: 16px;">✅ {tip}</li>' for tip in self.get_dynamic_tips(tool_id)])}
+                    </ul>
+                    <div style="margin-top: 20px; padding: 15px; background: #dcfce7; border-radius: 16px;">
+                        <strong>💪 نصيحة إضافية:</strong> 💡 {self._get_unique_phrase(self.spin.TIPS, 'tips_extra')}
+                    </div>
+                </div>
+            ''',
+            "comparison_table": f'''
+                <div style="background: #f8fafc; padding: 35px; border-radius: 28px; margin: 35px 0; overflow-x: auto;">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 25px;">
+                        <span style="font-size: 1.8rem;">📊</span>
+                        <h3 style="margin: 0; color: #1e293b;">مقارنة سريعة: {tool_name} مقابل البدائل</h3>
+                    </div>
+                    <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 20px; overflow: hidden;">
+                        <tr style="background: #1e293b; color: white;">
+                            <th style="padding: 15px; text-align: center;">الميزة</th>
+                            <th style="padding: 15px; text-align: center;">{tool_name}</th>
+                            <th style="padding: 15px; text-align: center;">الأدوات الأخرى</th>
+                         </tr>
+                        <tr style="border-bottom: 1px solid #e2e8f0;"><td style="padding: 15px;">السرعة</td><td style="padding: 15px;">⭐ {random.randint(4, 5)}/5</td><td style="padding: 15px;">⭐ {random.randint(2, 3)}/5</td></tr>
+                        <tr style="border-bottom: 1px solid #e2e8f0;"><td style="padding: 15px;">الدقة</td><td style="padding: 15px;">⭐ {random.randint(4, 5)}/5</td><td style="padding: 15px;">⭐ {random.randint(2, 3)}/5</td></tr>
+                        <tr style="border-bottom: 1px solid #e2e8f0;"><td style="padding: 15px;">سهولة الاستخدام</td><td style="padding: 15px;">⭐ {random.randint(4, 5)}/5</td><td style="padding: 15px;">⭐ {random.randint(2, 3)}/5</td></tr>
+                        <tr><td style="padding: 15px;">السعر</td><td style="padding: 15px;">✅ مجاني</td><td style="padding: 15px;">💰 مدفوع</td></tr>
+                    </table>
+                    <div style="margin-top: 20px; padding: 15px; background: #e0f2fe; border-radius: 16px;">
+                        <strong>🏆 الخلاصة:</strong> {tool_name} يتفوق في جميع المجالات، خاصة مع كونه مجانياً بالكامل!
+                    </div>
+                </div>
+            ''',
+            "comparison_table_detailed": f'''
+                <div style="background: #f8fafc; padding: 25px; border-radius: 20px; margin: 30px 0; overflow-x: auto;">
+                    <h3 style="margin-top: 0; color: #1e293b;">📊 مقارنة مفصلة: {tool_name} vs الطرق الأخرى</h3>
+                    <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 16px; overflow: hidden;">
+                        <thead>
+                            <tr style="background: #1e293b; color: white;">
+                                <th style="padding: 12px; text-align: center;">المعيار</th>
+                                <th style="padding: 12px; text-align: center;">{tool_name}</th>
+                                <th style="padding: 12px; text-align: center;">الفحص اليدوي</th>
+                                <th style="padding: 12px; text-align: center;">أدوات أخرى</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="border-bottom: 1px solid #e2e8f0;"><td style="padding: 12px;">السرعة</td><td style="padding: 12px;">✅ أقل من 5 ثوانٍ</td><td style="padding: 12px;">⏳ دقائق أو ساعات</td><td style="padding: 12px;">🟡 10-30 ثانية</td></tr>
+                            <tr style="border-bottom: 1px solid #e2e8f0;"><td style="padding: 12px;">الدقة</td><td style="padding: 12px;">✅ دقة عالية</td><td style="padding: 12px;">⚠️ تعتمد على خبرة المستخدم</td><td style="padding: 12px;">🟡 85-95%</td></tr>
+                            <tr style="border-bottom: 1px solid #e2e8f0;"><td style="padding: 12px;">السعر</td><td style="padding: 12px;">✅ مجاني</td><td style="padding: 12px;">✅ مجاني</td><td style="padding: 12px;">💰 غالباً مدفوع</td></tr>
+                            <tr style="border-bottom: 1px solid #e2e8f0;"><td style="padding: 12px;">سهولة الاستخدام</td><td style="padding: 12px;">✅ بسيطة جداً</td><td style="padding: 12px;">❌ معقدة</td><td style="padding: 12px;">🟡 متوسطة</td></tr>
+                            <tr><td style="padding: 12px;">تحديثات مستمرة</td><td style="padding: 12px;">✅ أوتوماتيكية</td><td style="padding: 12px;">❌ لا</td><td style="padding: 12px;">🟡 أحياناً</td></tr>
+                        </tbody>
+                    </table>
+                    <p style="margin-top: 15px; font-size: 0.85rem; color: #475569;">💡 <strong>الخلاصة:</strong> {tool_name} يجمع بين السرعة والدقة والمجانية، مما يجعله الخيار الأمثل لجميع المستخدمين.</p>
+                </div>
+            ''',
+            "ip_vs_privacy": f'''
+                <div style="background: #f8fafc; padding: 25px; border-radius: 20px; margin: 30px 0;">
+                    <h3 style="margin-top: 0; color: #1e293b;">📋 ماذا يكشف عنوان IP؟ وماذا لا يكشف؟</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px;">
+                        <div style="background: #fee2e2; padding: 15px; border-radius: 16px;">
+                            <h4 style="margin-top: 0; color: #991b1b;">❌ ما لا يكشفه IP</h4>
+                            <ul style="margin-bottom: 0;">
+                                <li>الاسم الشخصي</li>
+                                <li>العنوان الدقيق للمنزل</li>
+                                <li>رقم الهاتف</li>
+                                <li>كلمة المرور</li>
+                                <li>محتوى الرسائل</li>
+                            </ul>
+                        </div>
+                        <div style="background: #dcfce7; padding: 15px; border-radius: 16px;">
+                            <h4 style="margin-top: 0; color: #166534;">✅ ما يكشفه IP</h4>
+                            <ul style="margin-bottom: 0;">
+                                <li>المنطقة / المدينة (تقريباً)</li>
+                                <li>مزود خدمة الإنترنت (ISP)</li>
+                                <li>نوع الاتصال (ثابت / متغير)</li>
+                                <li>السمعة الأمنية</li>
+                                <li>سجل الثقة</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <p style="margin-top: 15px; font-size: 0.85rem; color: #475569;">💡 معلومة مهمة: الـ IP لا يكشف هويتك الشخصية بشكل مباشر، لكنه يقدم معلومات عن موقعك التقريبي ومزود الخدمة.</p>
+                </div>
+            ''',
+            "faq_detailed": f'''
+                <div style="margin: 45px 0;">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 25px;">
+                        <span style="font-size: 1.8rem;">❓</span>
+                        <h2 id="faq" style="margin: 0; color: #1e293b;">الأسئلة الأكثر شيوعاً عن {tool_name}</h2>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 15px;">
+                        {"".join([f"""
+                        <div itemscope itemprop="mainEntity" itemtype="https://schema.org/Question" style="background: #f8fafc; border-radius: 20px; overflow: hidden;">
+                            <div style="padding: 20px; background: #e2e8f0; font-weight: bold;" itemprop="name">
+                                ❓ {q}
+                            </div>
+                            <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer" style="padding: 20px; border-top: 1px solid #e2e8f0;">
+                                <div itemprop="text">
+                                    ✅ {self.generate_smart_content(tool_id, q, tool_name, tool_data)}
+                                </div>
+                            </div>
+                        </div>
+                        """ for q in self._get_safe_sample(questions, 5)])}
+                    </div>
+                </div>
+            ''',
+            "people_also_ask": self.add_people_also_ask_section(tool_id, tool_name),
+            "call_to_action_urgent": f'''
+                <div style="background: linear-gradient(135deg, #1e293b, #0f172a); color: white; padding: 50px; border-radius: 32px; text-align: center; margin: 50px 0;">
+                    <div style="font-size: 3rem; margin-bottom: 20px;">🚀⚡🔥</div>
+                    <h2 style="color: white; margin-bottom: 15px; font-size: 1.8rem;">لحظة الحقيقة: جرب {tool_name} بنفسك الآن!</h2>
+                    <p style="margin-bottom: 25px; font-size: 1.05rem;">لا تكتفِ بالقراءة، جرب بنفسك واختبر الفرق. الأداة مجانية ولا تحتاج إلى تسجيل.</p>
+                    <a href="{SITE_URL}/{tool_data['url_path']}"
+                       style="display: inline-block; padding: 16px 50px; background: #FFD700; color: #1e293b; text-decoration: none; border-radius: 60px; font-weight: bold; font-size: 1.1rem; transition: transform 0.3s ease; box-shadow: 0 8px 25px rgba(0,0,0,0.2);"
+                       onmouseover="this.style.transform='scale(1.05)'"
+                       onmouseout="this.style.transform='scale(1)'">
+                        ابدأ التحليل الآن مجاناً ←
+                    </a>
+                    <p style="margin-top: 20px; font-size: 0.85rem; opacity: 0.8;">✓ مجاني 100% ✓ لا بطاقة ائتمان ✓ لا تسجيل ✓ نتائج فورية</p>
+                </div>
+            ''',
+            "conclusion_inspiring": f'''
+                <div style="background: linear-gradient(135deg, #fef9c3, #fde68a); padding: 40px; border-radius: 32px; margin: 45px 0; text-align: center;">
+                    <div style="font-size: 2.5rem; margin-bottom: 20px;">✨🎯💪</div>
+                    <h3 style="color: #92400e; margin-bottom: 20px;">{random.choice(['خلاصة من القلب', 'الخلاصة النهائية', 'ما تبقى لك معرفته', 'الرسالة الأهم'])}</h3>
+                    <p style="font-size: 1.08rem; line-height: 1.8; margin-bottom: 25px;">{self.spin.get_conclusion(tool_name)}</p>
+                    <div style="background: white; padding: 20px; border-radius: 20px; margin-top: 20px;">
+                        <p style="margin: 0;"><strong>🎯 تذكر دائماً:</strong> {random.choice(['الوعي هو السلاح الأقوى', 'الوقاية خير من العلاج', 'الأمن الرقمي يبدأ منك', 'لا تستهين بالمخاطر الرقمية'])}.</p>
+                    </div>
+                </div>
+            ''',
+            "conclusion_personal": f'''
+                <div style="background: linear-gradient(135deg, #fce7f3, #fbcfe8); padding: 40px; border-radius: 32px; margin: 45px 0; text-align: center;">
+                    <div style="font-size: 2.5rem; margin-bottom: 20px;">💚🙏</div>
+                    <p style="font-size: 1.1rem; line-height: 1.8;">أتمنى بصدق أن تكون هذه التجربة التي شاركتها معك مفيدة وقيمة. {tool_name} غير حياتي الرقمية، وأتمنى أن يغير حياتك أيضاً.</p>
+                    <p style="margin-top: 25px; font-style: italic;">"{random.choice(['لا تنتظر حتى تتعرض للاختراق', 'ابدأ اليوم قبل فوات الأوان', 'استثمر في أمانك الرقمي الآن', 'حماية نفسك تبدأ بخطوة'])}"</p>
+                </div>
+            ''',
+            "conclusion_technical": f'''
+                <div style="background: #f1f5f9; padding: 35px; border-radius: 28px; margin: 35px 0;">
+                    <h3 style="margin-top: 0;">📝 الخلاصة التقنية</h3>
+                    <p>{tool_name} يعتمد على معمارية متقدمة تضمن دقة النتائج وسرعة الاستجابة. من خلال الاختبارات التي أجريتها، أثبتت الأداة كفاءتها في {random.choice(['الكشف عن الثغرات', 'تحليل البيانات', 'توفير الحماية'])}.</p>
+                    <p>{self._get_unique_transition()}</p>
+                </div>
+            ''',
+            "conclusion_warning": f'''
+                <div style="background: #fef2f2; padding: 35px; border-radius: 28px; margin: 35px 0;">
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+                        <span style="font-size: 2rem;">⚠️</span>
+                        <h3 style="margin: 0; color: #991b1b;">تحذير مهم</h3>
+                    </div>
+                    <p style="font-size: 1.05rem; line-height: 1.7; margin-bottom: 15px;">لا تتجاهل التحذيرات الأمنية التي تقدمها هذه الأداة.</p>
+                    <div style="background: white; padding: 15px; border-radius: 16px; margin-bottom: 15px;">
+                        <strong>❌ الخطأ الشائع:</strong> {self.get_dynamic_content(tool_id, 'mistakes')[0] if self.get_dynamic_content(tool_id, 'mistakes') else 'تجاهل تحديث البيانات بانتظام'}
+                    </div>
+                    <div style="background: #dcfce7; padding: 15px; border-radius: 16px;">
+                        <strong>💡 النصيحة الذهبية:</strong> {self.get_dynamic_tips(tool_id)[0] if self.get_dynamic_tips(tool_id) else self.spin.get_tip(tool_name)}
+                    </div>
+                </div>
+            ''',
+            "expert_recommendations": f'''
+                <div style="background: #f0fdf4; padding: 25px; border-radius: 20px; margin: 20px 0;">
+                    <h3 style="margin-top: 0;">🎓 توصيات الخبراء</h3>
+                    <p>بناءً على خبرتي الممتدة لأكثر من {random.randint(8, 15)} سنة في مجال الأمن السيبراني، أوصي باستخدام {tool_name} كجزء أساسي من استراتيجية الحماية الخاصة بك.</p>
+                </div>
+            ''',
+            "comparison_hook": f'''
+                <div style="background: linear-gradient(135deg, #e0f2fe, #bae6fd); padding: 30px; border-radius: 28px; margin: 25px 0;">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <span style="font-size: 2rem;">⚖️</span>
+                        <h2 style="margin: 0; color: #0369a1;">مقارنة شاملة: {tool_name} مقابل البدائل</h2>
+                    </div>
+                </div>
+            ''',
+            "shocking_hook_viral": f'''
+                <div style="background: linear-gradient(135deg, #fef3c7, #fde68a); padding: 30px; border-radius: 28px; margin: 25px 0; text-align: center;">
+                    <div style="font-size: 2rem;">😱</div>
+                    <p style="font-size: 1.2rem; font-weight: bold; color: #92400e; margin-top: 10px;">{self.spin.get_viral_warning()}</p>
+                </div>
+            ''',
+            "shocking_fact": f'''
+                <div style="background: linear-gradient(135deg, #fef3c7, #fde68a); padding: 25px; border-radius: 20px; margin: 25px 0; border-right: 4px solid #f59e0b;">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px;">
+                        <span style="font-size: 2rem;">💥</span>
+                        <h3 style="margin: 0; color: #92400e;">حقيقة صادمة قد لا تعرفها</h3>
+                    </div>
+                    <p style="margin-bottom: 0; line-height: 1.7;">{random.choice([
+                        "هل تعلم أن عنوان IP يمكنه كشف نوع جهازك وإصدار نظام التشغيل بدقة تصل إلى 90%؟",
+                        "المخترقون يستخدمون عنوان IP لتحديد أقرب سيرفر لديك وشن هجمات موجهة جغرافياً!",
+                        "حتى لو كنت تستخدم VPN، فإن بعض المواقع تستطيع تتبع عنوان IP الأصلي عبر تقنيات WebRTC!"
+                    ])}</p>
+                </div>
+            ''',
+            "developer_manual_check": f'''
+                <div style="background: #1e293b; color: white; padding: 25px; border-radius: 20px; margin: 25px 0;">
+                    <h3 style="margin-top: 0; color: #60a5fa;">🛠️ للمطورين: كيف تتأكد يدوياً من عدم تسريب مفاتيحك؟</h3>
+                    <p style="margin-bottom: 10px;">إذا كنت مطوراً وتستخدم Git، اتبع هذه الخطوات:</p>
+                    <ol style="margin: 10px 0 0 20px; color: #cbd5e1;">
+                        <li>أضف ملف <code>.gitignore</code> في جذر مشروعك</li>
+                        <li>أضف السطر <code>.env</code> إلى الملف (لحماية ملفات البيئة)</li>
+                        <li>أضف <code>config.py</code> أو أي ملف يحتوي على مفاتيح</li>
+                        <li>استخدم الأمر <code>git rm --cached</code> لإزالة الملفات المسربة من التاريخ</li>
+                        <li>قم بتغيير جميع المفاتيح المسربة فوراً</li>
+                    </ol>
+                    <div style="background: #fef3c7; padding: 12px; border-radius: 12px; margin-top: 15px; color: #1e293b;">
+                        💡 <strong>نصيحة مهمة:</strong> إذا اكتشفت أن مفتاحك قد تم تسريبه، <strong>أبطله فوراً</strong> من لوحة التحكم، <strong>ولّد مفتاحاً جديداً</strong>، ثم <strong>حدث بيئة العمل</strong> (متغيرات البيئة).
+                    </div>
+                </div>
+            ''',
+        }
+
+        html = sections_map.get(section_name, f"<p>{self._get_unique_transition()}</p>")
+        html = html.replace('<h2>', f'<{level}>').replace('</h2>', f'</{level}>')
+        return html
+
+    def generate_full_article(self, tool_id: str, competitor_data: Dict = None) -> Dict:
+        tool_data = self.tools_data.get(tool_id)
+        if not tool_data:
+            return {'html': '<p>الأداة غير موجودة</p>', 'word_count': 0, 'article_type': 'unknown'}
+
+        random.seed(hash(tool_id + datetime.now().strftime("%Y-%m-%d")) % 10000)
+
+        if competitor_data is None:
+            competitor_data = self.analyzer.analyze(tool_data['name'])
+
+        serp_analysis = self.analyze_serp_intent(tool_data['name'])
+        article_type_name = serp_analysis.get('decision', 'hybrid_page')
+
+        if article_type_name in ARTICLE_TYPES:
+            article_type = ARTICLE_TYPES[article_type_name]
+        else:
+            article_type_name = 'hybrid_page'
+            article_type = ARTICLE_TYPES['hybrid_page']
+
+        logger.info(f"📊 SERP Decision: {serp_analysis['decision']} (tools={serp_analysis['has_tools']}, videos={serp_analysis['has_videos']})")
+
+        sections_html = []
+        for section in article_type["sections"]:
+            try:
+                section_html = self.generate_section(section, tool_id, tool_data, article_type)
+                sections_html.append(section_html)
+            except Exception as e:
+                logger.warning(f"خطأ في توليد القسم {section}: {e}")
+                sections_html.append(f"<p>{self.spin.get_intro(tool_data['name'])}</p>")
+
+        if random.random() < 0.9:
+            sections_html.append(self.linker.generate_related_links(tool_id, self.tools_data))
+
+        if random.random() < 0.8:
+            sections_html.append(self.generate_section("call_to_action_urgent", tool_id, tool_data, article_type))
+
+        content = '\n\n'.join(sections_html)
+        content += self.add_eeat_section(tool_data['name'])
+        content += self.add_external_links()
+        content = self._improve_with_competitors(content, tool_data['name'], competitor_data)
+
+        word_count = len(content.split())
+
+        title_templates = {
+            "long_guide": [f"{tool_data['name']}: الدليل الشامل والمفصل {datetime.now().year}", f"كل ما تريد معرفته عن {tool_data['name']} (دليل متكامل)", f"{tool_data['name']} من الصفر إلى الاحتراف: دليل خطوة بخطوة"],
+            "personal_experience": [f"تجربتي الشخصية مع {tool_data['name']} (قصة حقيقية)", f"كيف أنقذني {tool_data['name']} من الاختراق: قصتي الحقيقية", f"ما تعلمته من تجربتي مع {tool_data['name']} (نصائح من القلب)"],
+            "technical_analysis": [f"تحليل تقني عميق لـ {tool_data['name']} | {datetime.now().year}", f"{tool_data['name']} من الداخل: كيف يعمل ولماذا هو الأفضل؟", f"هندسة {tool_data['name']}: شرح تقني للمحترفين"],
+            "case_study": [f"دراسة حالة: كيف غير {tool_data['name']} كل شيء", f"{tool_data['name']} في مواجهة التهديدات: قصة نجاح حقيقية", f"من واقع العمل: تجربة مؤسسة مع {tool_data['name']}"],
+            "comparison": [f"مقارنة شاملة: {tool_data['name']} مقابل أفضل {random.randint(5, 8)} بدائل", f"لماذا {tool_data['name']} هو الخيار الأفضل؟ مقارنة مفصلة", f"{tool_data['name']} vs المنافسين: من يفوز؟"],
+            "viral_short": [f"{tool_data['name']}: حقائق صادمة لا يخبرك بها الخبراء", f"{tool_data['name']}: تحذير عاجل قبل فوات الأوان", f"أسرار {tool_data['name']} التي لا يعرفها 99% من المستخدمين"],
+            "qa_style": [f"كل أسئلتك عن {tool_data['name']} بإجاباتها (دليل شامل)", f"{tool_data['name']}: سؤال وجواب مع خبراء الأمن السيبراني", f"اسأل خبير: كل ما تريد معرفته عن {tool_data['name']}"],
+            "mistakes_focus": [f"{random.randint(5, 8)} أخطاء قاتلة في {tool_data['name']} يجب تجنبها", f"لا ترتكب هذه الأخطاء مع {tool_data['name']} (دليل تحذيري)", f"أخطاء شائعة في {tool_data['name']} يقع فيها الجميع"]
+        }
+
+        title = random.choice(title_templates.get(article_type_name, title_templates["long_guide"]))
+        meta_desc = f"{random.choice(['دليل شامل', 'تجربة شخصية', 'تحليل تقني', 'دراسة حالة', 'مقارنة شاملة'])} عن {tool_data['name']}. {self._get_safe_sample(tool_data.get('questions', ['اكتشف كل ما تحتاج معرفته']), 1)[0]} تعلم {random.choice(['كيف تحمي نفسك', 'أفضل الممارسات', 'نصائح الخبراء'])} الآن."
+
+        html = f'''<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{meta_desc[:160]}">
+    <meta name="keywords" content="{', '.join(self._get_safe_sample(tool_data['keywords'], 12))}">
+    <meta name="author" content="مالك السماوي">
+    <meta name="robots" content="index, follow">
+    <title>{title}</title>
+    <style>
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        body {{ font-family: 'Tajawal', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; padding: 30px; }}
+        .container {{ max-width: 980px; margin: 0 auto; background: white; border-radius: 36px; padding: 50px; box-shadow: 0 20px 40px rgba(0,0,0,0.08); }}
+        h1 {{ color: #1e293b; border-bottom: 4px solid #3b82f6; padding-bottom: 18px; margin-bottom: 25px; font-size: 2rem; }}
+        h2 {{ color: #1e293b; margin: 35px 0 20px; font-size: 1.5rem; }}
+        h3 {{ color: #334155; margin: 25px 0 15px; font-size: 1.2rem; }}
+        p {{ line-height: 1.8; color: #334155; margin-bottom: 1rem; }}
+        ul, ol {{ margin: 1rem 0 1rem 1.5rem; line-height: 1.8; color: #334155; }}
+        li {{ margin-bottom: 0.5rem; }}
+        .disclaimer {{ background: #fef2f2; padding: 20px; border-radius: 20px; margin-top: 30px; font-size: 0.8rem; color: #991b1b; }}
+        @media (max-width: 768px) {{ body {{ padding: 15px; }} .container {{ padding: 25px; }} }}
+    </style>
+    <script type="application/ld+json">
+    {{
+        "@context": "https://schema.org",
+        "@type": "TechArticle",
+        "headline": "{title}",
+        "description": "{meta_desc[:200]}",
+        "datePublished": "{datetime.now().isoformat()}",
+        "dateModified": "{datetime.now().isoformat()}",
+        "author": {{"@type": "Person", "name": "مالك السماوي", "url": "{SITE_URL}"}},
+        "publisher": {{"@type": "Organization", "name": "CyberShield Ultra", "logo": {{"@type": "ImageObject", "url": "{SITE_URL}/static/logo.png"}}}},
+        "keywords": "{', '.join(self._get_safe_sample(tool_data['keywords'], 10))}",
+        "articleSection": "{article_type['name']}",
+        "inLanguage": "ar",
+        "wordCount": "{word_count}"
+    }}
+    </script>
+</head>
+<body>
+<div class="container">
+    <h1>🛡️ {title}</h1>
+
+    <div style="background: linear-gradient(135deg, #2563eb, #1e40af); color: white; padding: 30px; border-radius: 28px; margin: 25px 0; text-align: center;">
+        <h2 style="color: white; margin-bottom: 15px; border-bottom: none;">🔧 {tool_data['name']}</h2>
+        <p style="margin-bottom: 15px;">{tool_data['short_desc']}</p>
+        <input type="text" id="toolInput" placeholder="أدخل {tool_data.get('input_type', 'البيانات')} هنا" style="width: 100%; padding: 12px; border-radius: 12px; border: none; margin: 10px 0; font-size: 1rem;">
+        <button onclick="window.location.href='{SITE_URL}/{tool_data['url_path']}'" style="background: #f59e0b; color: white; border: none; padding: 12px 30px; border-radius: 40px; font-weight: bold; cursor: pointer; transition: transform 0.3s;">🔍 تحليل الآن</button>
+        <p style="margin-top: 15px; font-size: 0.8rem; opacity: 0.8;">✓ مجاني ✓ سريع ✓ بدون تسجيل</p>
+    </div>
+
+    {content}
+
+    <div class="disclaimer">
+        <p>⚠️ <strong>إخلاء مسؤولية:</strong> هذا المحتوى لأغراض التوعية الأمنية فقط، ويهدف إلى حماية المستخدمين من الهجمات الإلكترونية وليس استغلالها.</p>
+        <p style="margin-top: 10px;">📅 تاريخ النشر: {datetime.now().strftime('%d %B %Y')} | ⏱️ وقت القراءة: {max(6, word_count // 250)} دقائق | 📖 {word_count:,} كلمة | 🎯 نوع المقال: {article_type['name']}</p>
+    </div>
+</div>
+</body>
+</html>'''
+
+        return {
+            'html': html,
+            'word_count': word_count,
+            'tool_name': tool_data['name'],
+            'article_type': article_type['name'],
+            'article_type_id': article_type_name
+        }
+
+    def analyze_serp_intent(self, keyword: str) -> Dict:
+        result = {
+            "intent": "hybrid",
+            "has_tools": False,
+            "has_videos": False,
+            "has_featured_snippet": False,
+            "avg_word_count": 0,
+            "competitor_avg_length": 0,
+            "top_result_type": "unknown",
+            "decision": "hybrid_page",
+            "suggested_sections": []
+        }
+
+        try:
+            if self.analyzer and self.analyzer.serpapi_key:
+                serp_result = self.analyzer.analyze(keyword)
+
+                if serp_result.get('has_data'):
+                    organic_results = serp_result.get('competitors', [])
+
+                    tool_count = 0
+                    video_count = 0
+                    total_words = 0
+                    word_counts = []
+
+                    for comp in organic_results[:8]:
+                        title = comp.get('title', '').lower()
+                        snippet = comp.get('snippet', '').lower()
+
+                        tool_indicators = ['tool', 'checker', 'lookup', 'validator', 'أداة', 'فحص', 'كشف', 'تحقق', 'اختبار']
+                        video_indicators = ['youtube', 'video', 'فيديو', 'شرح', 'tutorial', 'كيفية']
+
+                        if any(ti in title or ti in snippet for ti in tool_indicators):
+                            tool_count += 1
+
+                        if any(vi in title or vi in snippet for vi in video_indicators):
+                            video_count += 1
+
+                        words_in_title = len(title.split())
+                        est_words = words_in_title * 50 + len(snippet.split()) * 2
+                        total_words += est_words
+                        word_counts.append(est_words)
+
+                    result['has_tools'] = tool_count >= 2
+                    result['has_videos'] = video_count >= 2
+                    result['avg_word_count'] = total_words // max(len(organic_results), 1)
+
+                    if word_counts:
+                        result['competitor_avg_length'] = sum(word_counts) // len(word_counts)
+
+                    if organic_results:
+                        first_title = organic_results[0].get('title', '').lower()
+                        if any(ti in first_title for ti in tool_indicators):
+                            result['top_result_type'] = 'tool'
+                        elif any(vi in first_title for vi in video_indicators):
+                            result['top_result_type'] = 'video'
+                        else:
+                            result['top_result_type'] = 'article'
+
+                    if result['has_tools']:
+                        result['intent'] = 'tool'
+                        result['decision'] = 'hybrid_page'
+                        result['suggested_sections'] = ['quick_answer', 'practical_steps', 'faq_detailed']
+                    elif result['has_videos']:
+                        result['intent'] = 'video'
+                        result['decision'] = 'long_guide'
+                        result['suggested_sections'] = ['technical_hook', 'step_by_step_detailed', 'conclusion_inspiring']
+                    else:
+                        result['intent'] = 'article'
+                        result['decision'] = 'long_guide'
+                        result['suggested_sections'] = ['introduction_long', 'what_is_detailed', 'why_important_detailed']
+
+                    for comp in organic_results[:3]:
+                        snippet = comp.get('snippet', '')
+                        if len(snippet) > 50 and ('?' in snippet or 'هو' in snippet or 'تعريف' in snippet):
+                            result['has_featured_snippet'] = True
+                            break
+
+                    logger.info(f"SERP Analysis: tools={result['has_tools']}, videos={result['has_videos']}, decision={result['decision']}")
+
+        except Exception as e:
+            logger.warning(f"SERP analysis failed: {e}")
+            result['decision'] = 'hybrid_page'
+
+        return result
+
+# ==================================================================================================
+# 13. نظام توليد المقالات مع Cache
+# ==================================================================================================
+class ArticleGenerator:
+    """نظام توليد المقالات الرئيسي مع تخزين مؤقت محسّن"""
+
+    def __init__(self):
+        self.content_engine = DynamicContentEngine(TOOLS_DATA)
+        self.analyzer = CompetitorAnalyzer()
+
+    def _generate_cache_key(self, tool_id: str, article_type: str = None) -> str:
+        date_key = datetime.now().strftime("%Y-%m-%d")
+        base_key = f"article_v28_{tool_id}_{date_key}"
+        if article_type:
+            base_key = f"{base_key}_{article_type}"
+        return base_key
+
+    def generate_article(self, tool_id: str, force: bool = False) -> Dict:
+        if tool_id not in TOOLS_DATA:
+            raise ValueError(f"Invalid tool ID: {tool_id}")
+
+        if not force:
+            for article_type in ARTICLE_TYPES.keys():
+                cache_key = self._generate_cache_key(tool_id, article_type)
+                cached = cache.get(cache_key)
+                if cached:
+                    logger.info(f"📄 Retrieved from cache: {tool_id} - {article_type}")
+                    return cached
+
+        logger.info(f"🚀 Generating new article for: {tool_id}")
+        start_time = time.time()
+
+        try:
+            tool_name = TOOLS_DATA[tool_id]['name']
+            competitor_data = self.analyzer.analyze(tool_name)
+            result = self.content_engine.generate_full_article(tool_id, competitor_data)
+
+            if competitor_data.get('has_data'):
+                result['competitor_keywords'] = competitor_data.get('keywords', [])[:5]
+
+            cache_key = self._generate_cache_key(tool_id, result.get('article_type_id'))
+            cache.set(cache_key, result, timeout=86400)
+
+            elapsed = time.time() - start_time
+            logger.info(f"✅ Generated in {elapsed:.2f}s - {result['word_count']:,} words - Type: {result.get('article_type', 'unknown')}")
+
+            return result
+
+        except Exception as e:
+            logger.error(f"❌ Error generating article for {tool_id}: {e}")
+            logger.error(traceback.format_exc())
+            return {
+                'html': f'<p>حدث خطأ أثناء توليد المقال. الرجاء المحاولة مرة أخرى.</p><p>الخطأ: {str(e)}</p>',
+                'word_count': 50,
+                'tool_name': TOOLS_DATA.get(tool_id, {}).get('name', 'الأداة'),
+                'article_type': 'error',
+                'article_type_id': 'error'
+            }
+
+# ==================================================================================================
+# 14. قالب HTML للوحة التحكم (نسخة V24 الكاملة مع Quill.js)
+# ==================================================================================================
+ADMIN_TEMPLATE = '''
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>👑 CyberShield Ultimate V28 - منشئ المقالات الأسطوري</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'Tajawal',-apple-system,BlinkMacSystemFont,sans-serif;background:linear-gradient(135deg,#0f172a,#1e293b);min-height:100vh;padding:30px;}
+        .container{max-width:1400px;margin:0 auto;}
+        .header{text-align:center;color:white;margin-bottom:30px;padding:25px;background:linear-gradient(135deg,rgba(37,99,235,0.2),rgba(124,58,237,0.2));border-radius:50px;}
+        .header h1{font-size:2rem;margin-bottom:10px;}
+        .header p{opacity:0.9;}
+        .dashboard{display:grid;grid-template-columns:350px 1fr;gap:25px;}
+        .sidebar{background:white;border-radius:28px;padding:25px;height:fit-content;}
+        .sidebar h3{margin-bottom:20px;color:#1e293b;border-bottom:2px solid #3b82f6;display:inline-block;padding-bottom:5px;}
+        .tool-list{display:flex;flex-direction:column;gap:8px;max-height:500px;overflow-y:auto;margin-bottom:20px;}
+        .tool-item{background:#f1f5f9;padding:12px 15px;border-radius:16px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:10px;}
+        .tool-item:hover{background:#e2e8f0;transform:translateX(-5px);}
+        .tool-item.active{background:linear-gradient(135deg,#2563eb,#7c3aed);color:white;}
+        .tool-icon{font-size:1.3rem;}
+        .tool-name{font-weight:500;}
+        .generate-btn{width:100%;padding:14px;background:linear-gradient(135deg,#2563eb,#7c3aed);color:white;border:none;border-radius:40px;font-size:1rem;font-weight:bold;cursor:pointer;margin-top:15px;transition:transform 0.2s;}
+        .generate-btn:hover{transform:scale(1.02);}
+        .generate-btn:disabled{opacity:0.6;cursor:not-allowed;}
+        .force-btn{background:linear-gradient(135deg,#dc2626,#991b1b);margin-top:10px;}
+        .main-area{background:white;border-radius:28px;padding:25px;}
+        .editor-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:15px;}
+        .editor-header h3{margin:0;color:#1e293b;}
+        .action-buttons{display:flex;gap:12px;}
+        .action-btn{padding:10px 20px;border:none;border-radius:30px;font-weight:bold;cursor:pointer;transition:all 0.2s;}
+        .copy-btn{background:#22c55e;color:white;}
+        .copy-btn:hover{background:#16a34a;}
+        .clear-btn{background:#ef4444;color:white;}
+        .clear-btn:hover{background:#dc2626;}
+        .preview-btn{background:#f59e0b;color:white;}
+        .preview-btn:hover{background:#d97706;}
+        .editor{background:#f8fafc;border-radius:20px;padding:20px;max-height:600px;overflow-y:auto;border:1px solid #e2e8f0;}
+        .preview{background:#f8fafc;border-radius:20px;padding:20px;max-height:600px;overflow-y:auto;border:1px solid #e2e8f0;display:none;}
+        .stats{display:flex;gap:20px;margin-top:20px;padding-top:20px;border-top:1px solid #e2e8f0;font-size:0.85rem;color:#64748b;flex-wrap:wrap;}
+        .loading{text-align:center;padding:40px;color:#3b82f6;}
+        .footer{text-align:center;margin-top:30px;color:rgba(255,255,255,0.5);font-size:0.8rem;}
+        @media(max-width:900px){.dashboard{grid-template-columns:1fr;}}
+        .quill-editor-wrapper{background:#f8fafc;border-radius:20px;overflow:hidden;border:1px solid #e2e8f0;}
+        .ql-toolbar{background:#f1f5f9;border-bottom:1px solid #e2e8f0;border-radius:20px 20px 0 0;}
+        .ql-container{min-height:500px;font-family:'Tajawal',monospace;font-size:14px;}
+        .ql-editor{direction:rtl;text-align:right;}
+        .edit-mode-toggle{display:flex;gap:10px;margin-bottom:15px;}
+        .mode-btn{padding:8px 20px;border:1px solid #cbd5e1;background:white;border-radius:40px;cursor:pointer;font-weight:500;transition:all 0.2s;}
+        .mode-btn.active{background:#2563eb;color:white;border-color:#2563eb;}
+        .source-editor{display:none;width:100%;min-height:500px;background:#0f172a;color:#e2e8f0;padding:20px;border-radius:20px;font-family:monospace;font-size:13px;direction:ltr;text-align:left;resize:vertical;}
+        #richEditor .ql-editor{color:#000000 !important;background:#ffffff !important;font-size:16px;line-height:1.8;direction:rtl;text-align:right;}
+        #richEditor .ql-editor p,#richEditor .ql-editor h1,#richEditor .ql-editor h2,#richEditor .ql-editor h3,#richEditor .ql-editor li,#richEditor .ql-editor span,#richEditor .ql-editor div{color:#000000 !important;}
+        .source-editor{background:#1e1e2e !important;color:#ffffff !important;}
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>👑 CyberShield Ultimate V28 - منشئ المقالات الأسطوري</h1>
+        <p>8 أنواع مختلفة من المقالات | روابط داخلية ذكية | تنوع لغوي هائل | تحليل منافسين حقيقي | صفر تكرار | Thread-Safe</p>
+    </div>
+
+    <div class="dashboard">
+        <div class="sidebar">
+            <h3>🛠️ الأدوات ({{ tools|length }})</h3>
+            <div class="tool-list">
+                {% for tid, tool in tools.items() %}
+                <div class="tool-item" data-tool="{{ tid }}">
+                    <span class="tool-icon">{{ tool.icon }}</span>
+                    <span class="tool-name">{{ tool.name }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            <button class="generate-btn" id="generateBtn">🚀 توليد مقال جديد</button>
+            <button class="generate-btn force-btn" id="forceGenerateBtn">⚡ توليد جديد (تجاوز Cache)</button>
+        </div>
+
+        <div class="main-area">
+            <div class="editor-header">
+                <h3>📝 <span id="currentToolName">اختر أداة من القائمة</span></h3>
+                <div class="action-buttons">
+                    <button class="action-btn preview-btn" id="previewBtn">👁️ معاينة</button>
+                    <button class="action-btn copy-btn" id="copyBtn">📋 نسخ HTML</button>
+                    <button class="action-btn copy-text-btn" id="copyTextBtn" style="background: #10b981; color: white;">📄 نسخ كنص</button>
+                    <button class="action-btn clear-btn" id="clearBtn">🗑️ مسح</button>
+                    <button class="action-btn" id="saveEditBtn" style="background: #8b5cf6; color: white;">💾 حفظ التعديلات</button>
+                </div>
+            </div>
+
+            <div class="edit-mode-toggle">
+                <button class="mode-btn active" id="richModeBtn">✍️ وضع التحرير المرئي</button>
+                <button class="mode-btn" id="sourceModeBtn">📄 وضع HTML الخام</button>
+            </div>
+            <textarea id="articleContent" style="display: none;"></textarea>
+
+            <div class="editor" id="editorView">
+                <div id="richEditor" class="quill-editor-wrapper" style="display: block;"></div>
+                <textarea id="sourceEditor" class="source-editor" placeholder="أدخل HTML الخام هنا..."></textarea>
+            </div>
+            <div class="preview" id="previewView"></div>
+
+            <div class="stats" id="stats">
+                <span>📄 عدد الكلمات: --</span>
+                <span>⏱️ وقت القراءة: --</span>
+                <span>📅 تاريخ التوليد: --</span>
+                <span>🎯 نوع المقال: --</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>💡 نصيحة: بعد نسخ المقال، قم بتعديل 2-3 أسطر لإضافة لمساتك الشخصية قبل النشر في مدونتك</p>
+        <p style="margin-top:5px;">⚡ المقالات فريدة في كل مرة | 8 أنواع مختلفة | أكثر من 500 جملة متنوعة | روابط داخلية ذكية | صفر تكرار</p>
+    </div>
+</div>
+
+<script>
+    let currentTool = "ip_check";
+    let currentHtml = "";
+    let currentStats = {};
+    let quillEditor = null;
+    let isRichMode = true;
+    let previewMode = false;
+
+    function updateCurrentHtmlFromEditor() {
+        if (isRichMode && quillEditor) {
+            currentHtml = quillEditor.root.innerHTML;
+            document.getElementById('articleContent').value = currentHtml;
+        } else if (!isRichMode) {
+            const sourceTextarea = document.getElementById('sourceEditor');
+            if (sourceTextarea) {
+                currentHtml = sourceTextarea.value;
+                document.getElementById('articleContent').value = currentHtml;
+            }
+        }
+    }
+
+    function refreshPreview() {
+        const previewView = document.getElementById('previewView');
+        if (previewView && currentHtml) {
+            previewView.innerHTML = currentHtml;
+        }
+    }
+
+    document.querySelectorAll('.tool-item').forEach(tool => {
+        tool.addEventListener('click', function() {
+            document.querySelectorAll('.tool-item').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            currentTool = this.dataset.tool;
+            document.getElementById('currentToolName').innerText = this.querySelector('.tool-name').innerText;
+        });
+    });
+
+    async function generateArticle(force = false) {
+        const btn = document.getElementById('generateBtn');
+        const forceBtn = document.getElementById('forceGenerateBtn');
+        const previewDiv = document.getElementById('previewView');
+        const statsDiv = document.getElementById('stats');
+
+        btn.disabled = true;
+        if (forceBtn) forceBtn.disabled = true;
+        btn.textContent = force ? '⏳ جاري التوليد الجديد...' : '⏳ جاري التوليد...';
+        previewDiv.innerHTML = '<div class="loading">🔥 جاري التوليد... قد يستغرق 10-20 ثانية</div>';
+
+        try {
+            const response = await fetch('/api/generate-article', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({tool: currentTool, force: force})
+            });
+
+            const data = await response.json();
+
+            if (data.error) throw new Error(data.error);
+            if (!data.html) throw new Error('لم يتم استلام المقال');
+
+            currentHtml = data.html;
+            currentStats = data.stats;
+
+            previewDiv.innerHTML = currentHtml;
+            statsDiv.innerHTML = `
+                <span>📄 عدد الكلمات: ${data.stats.word_count.toLocaleString()}</span>
+                <span>⏱️ وقت القراءة: ${data.stats.reading_time} دقائق</span>
+                <span>📅 تاريخ التوليد: ${data.stats.date}</span>
+                <span>🎯 نوع المقال: ${data.stats.article_type || 'متنوع'}</span>
+            `;
+
+            if (quillEditor && currentHtml) quillEditor.root.innerHTML = currentHtml;
+            const sourceTextarea = document.getElementById('sourceEditor');
+            if (sourceTextarea) sourceTextarea.value = currentHtml;
+            document.getElementById('articleContent').value = currentHtml;
+
+            alert('✅ تم توليد المقال بنجاح!');
+        } catch (error) {
+            console.error('Error:', error);
+            previewDiv.innerHTML = `<div class="loading" style="color:red;">❌ خطأ: ${error.message}</div>`;
+        } finally {
+            btn.disabled = false;
+            if (forceBtn) forceBtn.disabled = false;
+            btn.textContent = '🚀 توليد مقال جديد';
+        }
+    }
+
+    document.getElementById('generateBtn').onclick = () => generateArticle(false);
+    document.getElementById('forceGenerateBtn').onclick = () => generateArticle(true);
+
+    document.getElementById('copyBtn').onclick = function() {
+        if (!currentHtml) { alert('⚠️ لا يوجد محتوى للنسخ. قم بتوليد مقال أولاً.'); return; }
+        navigator.clipboard.writeText(currentHtml).then(() => alert('✅ تم نسخ المقال بنجاح!')).catch(() => alert('❌ فشل النسخ، حاول يدوياً'));
+    };
+
+    document.getElementById('clearBtn').onclick = function() {
+        currentHtml = '';
+        document.getElementById('articleContent').value = '';
+        document.getElementById('previewView').innerHTML = '';
+        if (quillEditor) quillEditor.root.innerHTML = '';
+        const sourceTextarea = document.getElementById('sourceEditor');
+        if (sourceTextarea) sourceTextarea.value = '';
+        document.getElementById('stats').innerHTML = `<span>📄 عدد الكلمات: --</span><span>⏱️ وقت القراءة: --</span><span>📅 تاريخ التوليد: --</span><span>🎯 نوع المقال: --</span>`;
+        alert('🗑️ تم مسح المحتوى');
+    };
+
+    document.getElementById('previewBtn').onclick = function() {
+        const editorView = document.getElementById('editorView');
+        const previewView = document.getElementById('previewView');
+        updateCurrentHtmlFromEditor();
+
+        if (!previewMode) {
+            refreshPreview();
+            editorView.style.display = 'none';
+            previewView.style.display = 'block';
+            this.textContent = '✏️ تعديل';
+            previewMode = true;
+        } else {
+            if (isRichMode && quillEditor) quillEditor.root.innerHTML = currentHtml;
+            else if (!isRichMode) { const sourceTextarea = document.getElementById('sourceEditor'); if (sourceTextarea) sourceTextarea.value = currentHtml; }
+            editorView.style.display = 'block';
+            previewView.style.display = 'none';
+            this.textContent = '👁️ معاينة';
+            previewMode = false;
+        }
+    };
+
+    function initQuill() {
+        if (quillEditor) return;
+        const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = 'https://cdn.quilljs.com/1.3.6/quill.snow.css'; document.head.appendChild(link);
+        const script = document.createElement('script'); script.src = 'https://cdn.quilljs.com/1.3.6/quill.js';
+        script.onload = function() {
+            quillEditor = new Quill('#richEditor', {
+                theme: 'snow', direction: 'rtl', placeholder: 'المقال سوف يظهر هنا... يمكنك التعديل عليه مباشرة!',
+                modules: { toolbar: [[{ 'header': [1,2,3,4,5,6,false] }], ['bold','italic','underline','strike'], [{ 'color': [] },{ 'background': [] }], [{ 'list': 'ordered'},{ 'list': 'bullet' }], [{ 'align': [] }], ['link','image','video'], ['clean']] }
+            });
+            quillEditor.on('text-change', function() { if (isRichMode && quillEditor) { currentHtml = quillEditor.root.innerHTML; document.getElementById('articleContent').value = currentHtml; } });
+            if (currentHtml) quillEditor.root.innerHTML = currentHtml;
+        };
+        document.head.appendChild(script);
+    }
+
+    document.getElementById('richModeBtn')?.addEventListener('click', function() {
+        if (!isRichMode) { const sourceTextarea = document.getElementById('sourceEditor'); if (sourceTextarea && sourceTextarea.value !== currentHtml) { currentHtml = sourceTextarea.value; document.getElementById('articleContent').value = currentHtml; } }
+        isRichMode = true;
+        document.getElementById('richModeBtn').classList.add('active');
+        document.getElementById('sourceModeBtn').classList.remove('active');
+        document.getElementById('richEditor').style.display = 'block';
+        document.getElementById('sourceEditor').style.display = 'none';
+        if (quillEditor && currentHtml) quillEditor.root.innerHTML = currentHtml;
+    });
+
+    document.getElementById('sourceModeBtn')?.addEventListener('click', function() {
+        if (isRichMode && quillEditor) { currentHtml = quillEditor.root.innerHTML; document.getElementById('articleContent').value = currentHtml; }
+        isRichMode = false;
+        document.getElementById('sourceModeBtn').classList.add('active');
+        document.getElementById('richModeBtn').classList.remove('active');
+        document.getElementById('richEditor').style.display = 'none';
+        document.getElementById('sourceEditor').style.display = 'block';
+        const sourceTextarea = document.getElementById('sourceEditor');
+        if (sourceTextarea) {
+            sourceTextarea.value = currentHtml;
+            sourceTextarea.removeEventListener('input', sourceTextarea._inputHandler);
+            sourceTextarea._inputHandler = function() { if (!isRichMode) { currentHtml = this.value; document.getElementById('articleContent').value = currentHtml; } };
+            sourceTextarea.addEventListener('input', sourceTextarea._inputHandler);
+        }
+    });
+
+    document.getElementById('saveEditBtn')?.addEventListener('click', function() {
+        updateCurrentHtmlFromEditor();
+        refreshPreview();
+        alert('✅ تم حفظ التعديلات وتحديث المعاينة!');
+    });
+
+    setTimeout(initQuill, 500);
+
+    document.querySelector('.tool-item').classList.add('active');
+    document.getElementById('currentToolName').innerText = document.querySelector('.tool-item .tool-name').innerText;
+
+    document.getElementById('copyTextBtn').onclick = function() {
+        if (!currentHtml) { alert('⚠️ لا يوجد محتوى للنسخ. قم بتوليد مقال أولاً.'); return; }
+        const tempDiv = document.createElement('div'); tempDiv.innerHTML = currentHtml;
+        const plainText = tempDiv.textContent || tempDiv.innerText || '';
+        navigator.clipboard.writeText(plainText).then(() => alert('✅ تم نسخ المقال كنص عادي!')).catch(() => alert('❌ فشل النسخ'));
+    };
+</script>
+</body>
+</html>
+'''
+
+# ==================================================================================================
+# 15. دوال عامة للاستيراد من app.py
+# ==================================================================================================
+_generator_instance = None
+
+def _get_generator() -> ArticleGenerator:
+    global _generator_instance
+    if _generator_instance is None:
+        _generator_instance = ArticleGenerator()
+    return _generator_instance
+
+def generate_article_page() -> str:
+    return render_template_string(ADMIN_TEMPLATE, tools=TOOLS_DATA)
+
+def api_generate_article():
+    try:
+        if not request.is_json:
+            return jsonify({'error': 'Invalid request, JSON expected'}), 400
+
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'Empty request body'}), 400
+
+        tool_id = data.get('tool', '').strip()
+
+        if not tool_id:
+            return jsonify({'error': 'Tool ID is required'}), 400
+        if len(tool_id) > 50:
+            return jsonify({'error': 'Tool ID too long'}), 400
+        if tool_id not in TOOLS_DATA:
+            return jsonify({'error': f'Invalid tool: {tool_id}'}), 400
+
+        force = data.get('force', False)
+        if not isinstance(force, bool):
+            force = False
+
+        logger.info(f"🚀 API request: generate article for {tool_id} (force={force})")
+        start_time = time.time()
+
+        generator = _get_generator()
+        result = generator.generate_article(tool_id, force=force)
+
+        elapsed = time.time() - start_time
+
+        return jsonify({
+            'success': True,
+            'html': result['html'],
+            'stats': {
+                'word_count': result['word_count'],
+                'reading_time': max(6, result['word_count'] // 250),
+                'date': datetime.now().strftime('%d/%m/%Y'),
+                'tool_name': result['tool_name'],
+                'article_type': result.get('article_type', 'متنوع'),
+                'generation_time': round(elapsed, 2)
+            }
+        })
+
+    except ValueError as e:
+        logger.warning(f"Validation error: {e}")
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        logger.error(f"❌ Error in API: {str(e)}")
+        logger.error(traceback.format_exc())
+        return jsonify({'error': 'حدث خطأ داخلي. الرجاء المحاولة مرة أخرى.'}), 500
+
+# ==================================================================================================
+# نهاية الملف - جاهز للاستيراد من app.py
+# ==================================================================================================

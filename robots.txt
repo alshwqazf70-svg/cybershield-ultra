@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://cybersecuritypro.pythonanywhere.com/sitemap.xml

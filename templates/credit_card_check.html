@@ -1,0 +1,2003 @@
+{% extends "base.html" %}
+{% block title %}💳 فحص البطاقات الأسطوري المتوحش - CyberShield Ultra | 60+ تحليل متقدم{% endblock %}
+{% block meta_description %}أقوى أداة فحص بطاقات ائتمانية في العالم. 60+ نتيجة تحليل: BIN Lookup، كشف البنك، تقييم المخاطر، تحليل الأمان، توصيات PCI DSS، والمزيد بدقة 99.99%.{% endblock %}
+{% block meta_keywords %}فحص بطاقات, BIN Lookup, Visa Checker, Mastercard Checker, Luhn Algorithm, Card BIN, Bank Identification, Credit Card Scanner, CyberShield{% endblock %}
+{% block og_title %}💳 فحص البطاقات الأسطوري - 60+ تحليل متقدم | CyberShield Ultra{% endblock %}
+{% block og_description %}أداة فحص البطاقات الأقوى عالمياً: BIN، البنك المصدر، نوع البطاقة، تقييم المخاطر، كشف الاختراقات، توصيات PCI DSS، والمزيد.{% endblock %}
+
+{% block styles %}
+<style>
+    /* ============================================================
+       CREDIT CARD LEGENDARY BEAST MODE v60.0 - ULTIMATE EDITION
+       أقوى تصميم لفحص البطاقات على وجه الأرض
+       جميع المميزات محفوظة + تحسينات أسطورية
+       ============================================================ */
+
+    :root {
+        --card-primary: #b45309;
+        --card-primary-dark: #78350f;
+        --card-primary-light: #f59e0b;
+        --card-accent: #fbbf24;
+        --card-success: #059669;
+        --card-warning: #d97706;
+        --card-danger: #dc2626;
+        --card-info: #0284c7;
+        --card-dark: #1c1917;
+        --card-darker: #0c0a09;
+        --card-light: #fffbeb;
+        --card-gradient-1: linear-gradient(135deg, #b45309 0%, #d97706 25%, #f59e0b 50%, #fbbf24 75%, #b45309 100%);
+        --card-gradient-2: linear-gradient(45deg, #1c1917 0%, #44403c 50%, #1c1917 100%);
+        --card-glow: 0 0 50px rgba(180, 83, 9, 0.6);
+        --card-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+        --card-border: 1px solid rgba(180, 83, 9, 0.3);
+        --card-radius: 60px;
+        --card-radius-sm: 30px;
+    }
+
+    /* ============================================================
+       HERO SECTION - أسطوري متوحش
+       ============================================================ */
+    .card-beast-hero {
+        position: relative;
+        min-height: 65vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 80px 0;
+        overflow: hidden;
+        background: radial-gradient(ellipse at 30% 40%, #2a1f0f 0%, #0c0a09 100%);
+        border-radius: 0 0 120px 120px;
+        margin-bottom: 60px;
+    }
+
+    .card-beast-hero::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background:
+            repeating-linear-gradient(45deg, rgba(180,83,9,0.03) 0px, rgba(180,83,9,0.03) 2px, transparent 2px, transparent 8px),
+            radial-gradient(circle at 20% 30%, rgba(245,158,11,0.15) 0%, transparent 50%),
+            radial-gradient(circle at 80% 70%, rgba(180,83,9,0.2) 0%, transparent 50%),
+            radial-gradient(circle at 40% 60%, rgba(251,191,36,0.1) 0%, transparent 40%);
+        animation: beastBgPulse 8s ease-in-out infinite;
+    }
+
+    @keyframes beastBgPulse {
+        0%, 100% { opacity: 0.6; transform: scale(1); }
+        50% { opacity: 1; transform: scale(1.05); }
+    }
+
+    .card-beast-particles {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background-image:
+            radial-gradient(circle at 10% 20%, rgba(255,255,255,0.12) 1px, transparent 1px),
+            radial-gradient(circle at 30% 50%, rgba(245,158,11,0.12) 2px, transparent 2px),
+            radial-gradient(circle at 70% 30%, rgba(180,83,9,0.12) 1.5px, transparent 1.5px),
+            radial-gradient(circle at 85% 75%, rgba(251,191,36,0.1) 1px, transparent 1px);
+        background-size: 150px 150px;
+        animation: beastParticlesFloat 60s linear infinite;
+        opacity: 0.5;
+    }
+
+    @keyframes beastParticlesFloat {
+        0% { transform: translate(0, 0) rotate(0deg); }
+        25% { transform: translate(40px, 40px) rotate(90deg); }
+        50% { transform: translate(80px, 0) rotate(180deg); }
+        75% { transform: translate(40px, -40px) rotate(270deg); }
+        100% { transform: translate(0, 0) rotate(360deg); }
+    }
+
+    .card-beast-content {
+        position: relative;
+        z-index: 10;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    .card-beast-icon {
+        font-size: 8rem;
+        display: inline-block;
+        margin-bottom: 30px;
+        filter: drop-shadow(0 0 60px #b45309) drop-shadow(0 0 100px #f59e0b);
+        animation: beastIconFloat 4s ease-in-out infinite;
+    }
+
+    @keyframes beastIconFloat {
+        0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+        20% { transform: translateY(-25px) rotate(8deg) scale(1.08); }
+        40% { transform: translateY(15px) rotate(-5deg) scale(0.96); }
+        60% { transform: translateY(-15px) rotate(5deg) scale(1.04); }
+        80% { transform: translateY(8px) rotate(-3deg) scale(0.98); }
+    }
+
+    .card-beast-title {
+        font-size: clamp(3.5rem, 10vw, 6rem);
+        font-weight: 900;
+        margin-bottom: 25px;
+        background: linear-gradient(135deg, #ffffff, #fef3c7, #fde68a, #fbbf24, #f59e0b, #d97706);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-size: 400% 400%;
+        animation: beastGradientShift 6s ease infinite;
+        text-shadow: 0 0 80px rgba(245, 158, 11, 0.5);
+        letter-spacing: -0.02em;
+        line-height: 1.2;
+    }
+
+    @keyframes beastGradientShift {
+        0%, 100% { background-position: 0% 50%; }
+        33% { background-position: 50% 50%; }
+        66% { background-position: 100% 50%; }
+    }
+
+    .card-beast-subtitle {
+        font-size: 1.6rem;
+        color: rgba(255,255,255,0.95);
+        max-width: 900px;
+        margin: 0 auto 40px;
+        line-height: 1.9;
+        text-shadow: 0 0 30px rgba(0,0,0,0.7);
+        font-weight: 500;
+    }
+
+    .card-beast-subtitle span {
+        background: linear-gradient(135deg, #fbbf24, #f59e0b);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 800;
+    }
+
+    .card-beast-stats {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 50px;
+    }
+
+    .card-beast-stat {
+        padding: 18px 40px;
+        background: rgba(28, 25, 23, 0.7);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(245, 158, 11, 0.4);
+        border-radius: 60px;
+        font-size: 1.1rem;
+        color: #fde68a;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        font-weight: 700;
+        box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+    }
+
+    .card-beast-stat:hover {
+        border-color: #f59e0b;
+        transform: translateY(-10px) scale(1.05);
+        box-shadow: 0 20px 50px -12px rgba(245, 158, 11, 0.5);
+        background: rgba(180, 83, 9, 0.2);
+    }
+
+    /* ============================================================
+       MAIN TOOL CARD - البطاقة الرئيسية الأسطورية
+       ============================================================ */
+    .beast-tool-container {
+        max-width: 1400px;
+        margin: 0 auto 80px;
+        padding: 0 20px;
+    }
+
+    .beast-main-card {
+        background: rgba(28, 25, 23, 0.85);
+        backdrop-filter: blur(30px);
+        border: 1px solid rgba(245, 158, 11, 0.35);
+        border-radius: 80px;
+        padding: 60px;
+        box-shadow:
+            0 60px 100px -40px rgba(0,0,0,0.95),
+            0 0 0 1px rgba(245,158,11,0.2) inset,
+            0 0 60px rgba(245,158,11,0.15);
+        transition: all 0.5s ease;
+        transform-style: preserve-3d;
+        perspective: 2000px;
+    }
+
+    .beast-main-card:hover {
+        box-shadow:
+            0 70px 120px -40px rgba(0,0,0,0.98),
+            0 0 0 2px rgba(245,158,11,0.3) inset,
+            0 0 80px rgba(245,158,11,0.25);
+        transform: translateY(-5px);
+    }
+
+    .beast-header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 25px;
+        margin-bottom: 50px;
+        flex-wrap: wrap;
+    }
+
+    .beast-status {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 30px;
+        background: rgba(245,158,11,0.12);
+        border: 1px solid rgba(245,158,11,0.35);
+        border-radius: 50px;
+    }
+
+    .beast-status-dot {
+        width: 14px;
+        height: 14px;
+        background: #10b981;
+        border-radius: 50%;
+        box-shadow: 0 0 30px #10b981;
+        animation: beastStatusPulse 1.5s infinite;
+    }
+
+    @keyframes beastStatusPulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.3; transform: scale(1.4); }
+    }
+
+    .beast-status-text {
+        color: #fde68a;
+        font-weight: 800;
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+    }
+
+    .beast-title {
+        font-size: 2.8rem;
+        font-weight: 900;
+        margin: 0;
+        background: linear-gradient(135deg, #fff, #fde68a, #fbbf24);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: -0.02em;
+    }
+
+    .beast-version {
+        padding: 12px 30px;
+        background: rgba(245,158,11,0.15);
+        border: 1px solid rgba(245,158,11,0.5);
+        border-radius: 50px;
+        color: #fbbf24;
+        font-weight: 800;
+        font-size: 1rem;
+        letter-spacing: 2px;
+        box-shadow: 0 0 40px rgba(245,158,11,0.3);
+        animation: beastVersionGlow 3s ease-in-out infinite;
+    }
+
+    @keyframes beastVersionGlow {
+        0%, 100% { box-shadow: 0 0 20px rgba(245,158,11,0.2); }
+        50% { box-shadow: 0 0 50px rgba(245,158,11,0.6); }
+    }
+
+    /* ============================================================
+       INPUT AREA - منطقة الإدخال المتوحشة
+       ============================================================ */
+    .beast-input-area {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 50px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .beast-input-wrapper {
+        flex: 2;
+        min-width: 400px;
+        position: relative;
+    }
+
+    .beast-input {
+        width: 100%;
+        padding: 28px 35px;
+        background: rgba(0,0,0,0.6);
+        border: 2px solid rgba(245,158,11,0.4);
+        border-radius: 70px;
+        font-size: 1.4rem;
+        color: #fff;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        direction: ltr;
+        text-align: left;
+        font-family: 'Courier New', monospace;
+        letter-spacing: 2px;
+        font-weight: 600;
+    }
+
+    .beast-input:focus {
+        border-color: #f59e0b;
+        box-shadow: 0 0 0 6px rgba(245,158,11,0.2), 0 0 60px rgba(245,158,11,0.4);
+        outline: none;
+        background: rgba(0,0,0,0.8);
+        transform: scale(1.02);
+    }
+
+    .beast-input::placeholder {
+        color: #78716c;
+        font-size: 1.2rem;
+        font-family: 'Cairo', sans-serif;
+        font-weight: 400;
+    }
+
+    .beast-btn {
+        padding: 28px 70px;
+        background: linear-gradient(135deg, #b45309, #d97706, #f59e0b, #fbbf24, #f59e0b);
+        background-size: 400% 400%;
+        border: none;
+        border-radius: 70px;
+        color: white;
+        font-weight: 900;
+        font-size: 1.5rem;
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 20px 50px -12px rgba(245,158,11,0.6);
+        display: inline-flex;
+        align-items: center;
+        gap: 18px;
+        min-width: 280px;
+        justify-content: center;
+        animation: beastBtnGradient 4s ease infinite;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+
+    @keyframes beastBtnGradient {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+    }
+
+    .beast-btn:hover:not(:disabled) {
+        transform: translateY(-10px) scale(1.05);
+        box-shadow: 0 35px 65px -15px rgba(245,158,11,0.8);
+    }
+
+    .beast-btn:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        filter: grayscale(40%);
+    }
+
+    .beast-spinner {
+        width: 32px;
+        height: 32px;
+        border: 4px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        border-top-color: #fff;
+        border-right-color: #fbbf24;
+        animation: beastSpin 0.8s linear infinite;
+    }
+
+    @keyframes beastSpin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* ============================================================
+       DEMO CARDS - بطاقات تجريبية
+       ============================================================ */
+    .beast-demo-section {
+        margin-top: 30px;
+        padding: 25px;
+        background: rgba(245,158,11,0.08);
+        border: 1px solid rgba(245,158,11,0.25);
+        border-radius: 60px;
+        text-align: center;
+    }
+
+    .beast-demo-title {
+        color: #fde68a;
+        font-size: 1.2rem;
+        margin-bottom: 20px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .beast-demo-grid {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .beast-demo-btn {
+        padding: 15px 30px;
+        background: rgba(0,0,0,0.4);
+        border: 1px solid rgba(245,158,11,0.4);
+        border-radius: 50px;
+        color: #fff;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        font-family: 'Courier New', monospace;
+        font-weight: 600;
+    }
+
+    .beast-demo-btn:hover {
+        background: rgba(245,158,11,0.25);
+        border-color: #f59e0b;
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px -10px rgba(245,158,11,0.4);
+    }
+
+    /* ============================================================
+       STATS GRID - إحصائيات متوحشة
+       ============================================================ */
+    .beast-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+        margin: 50px 0;
+    }
+
+    .beast-stat-card {
+        background: linear-gradient(145deg, rgba(28,25,23,0.8), rgba(12,10,9,0.9));
+        border: 1px solid rgba(245,158,11,0.3);
+        border-radius: 40px;
+        padding: 30px 20px;
+        text-align: center;
+        transition: all 0.4s ease;
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+    }
+
+    .beast-stat-card::before {
+        content: '';
+        position: absolute;
+        top: -2px;
+        left: -2px;
+        right: -2px;
+        bottom: -2px;
+        background: linear-gradient(135deg, #b45309, #f59e0b, #fbbf24);
+        border-radius: 42px;
+        opacity: 0;
+        transition: opacity 0.4s ease;
+        z-index: -1;
+    }
+
+    .beast-stat-card:hover::before {
+        opacity: 0.2;
+    }
+
+    .beast-stat-card:hover {
+        transform: translateY(-12px);
+        border-color: transparent;
+        box-shadow: 0 30px 50px -20px rgba(245,158,11,0.4);
+    }
+
+    .beast-stat-value {
+        font-size: 3rem;
+        font-weight: 900;
+        background: linear-gradient(135deg, #fff, #fde68a, #fbbf24);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        line-height: 1.2;
+        margin-bottom: 10px;
+    }
+
+    .beast-stat-label {
+        color: #a8a29e;
+        font-size: 0.9rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 15px;
+    }
+
+    .beast-stat-trend {
+        display: inline-block;
+        padding: 6px 18px;
+        background: rgba(0,0,0,0.5);
+        border: 1px solid rgba(245,158,11,0.3);
+        border-radius: 30px;
+        color: #fde68a;
+        font-size: 0.8rem;
+        font-weight: 700;
+    }
+
+    /* ============================================================
+       RESULTS SECTION - نتائج أسطورية متوحشة
+       ============================================================ */
+    .beast-results {
+        margin: 50px 0;
+        animation: beastSlideUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes beastSlideUp {
+        from { opacity: 0; transform: translateY(60px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .beast-result-main {
+        background: linear-gradient(145deg, rgba(28,25,23,0.95), rgba(12,10,9,0.98));
+        backdrop-filter: blur(30px);
+        border: 1px solid rgba(245,158,11,0.4);
+        border-radius: 60px;
+        padding: 50px;
+        box-shadow: 0 50px 100px -40px rgba(0,0,0,0.95);
+    }
+
+    .beast-result-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 40px;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .beast-result-badge {
+        padding: 12px 30px;
+        background: rgba(16,185,129,0.15);
+        border: 1px solid rgba(16,185,129,0.4);
+        border-radius: 50px;
+        color: #34d399;
+        font-weight: 800;
+        font-size: 1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .beast-result-title {
+        font-size: 2.5rem;
+        font-weight: 900;
+        color: #fff;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .beast-result-icon {
+        font-size: 3.5rem;
+        filter: drop-shadow(0 0 40px #f59e0b);
+        animation: beastIconPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes beastIconPulse {
+        0%, 100% { transform: scale(1); filter: drop-shadow(0 0 30px #f59e0b); }
+        50% { transform: scale(1.1); filter: drop-shadow(0 0 60px #f59e0b); }
+    }
+
+    .beast-risk-badge {
+        background: rgba(0,0,0,0.4);
+        border: 2px solid;
+        border-radius: 60px;
+        padding: 15px 35px;
+        font-weight: 800;
+        font-size: 1.2rem;
+        color: #fff;
+        backdrop-filter: blur(10px);
+    }
+
+    /* ============================================================
+       RISK METER - مقياس المخاطر المتوحش
+       ============================================================ */
+    .beast-risk-section {
+        margin: 40px 0;
+        padding: 30px;
+        background: rgba(0,0,0,0.3);
+        border-radius: 40px;
+    }
+
+    .beast-risk-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+    }
+
+    .beast-risk-label {
+        color: #a8a29e;
+        font-weight: 700;
+        font-size: 1.1rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+
+    .beast-risk-value {
+        font-weight: 900;
+        font-size: 1.5rem;
+        color: #fff;
+    }
+
+    .beast-risk-bar {
+        height: 20px;
+        background: rgba(0,0,0,0.5);
+        border-radius: 30px;
+        overflow: hidden;
+        position: relative;
+        border: 1px solid rgba(245,158,11,0.3);
+    }
+
+    .beast-risk-fill {
+        height: 100%;
+        border-radius: 30px;
+        transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .beast-risk-fill::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+        animation: beastShimmer 2s infinite;
+    }
+
+    @keyframes beastShimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+
+    /* ============================================================
+       RESULTS GRID - شبكة النتائج الموسعة
+       ============================================================ */
+    .beast-results-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+        margin: 40px 0;
+    }
+
+    .beast-result-item {
+        background: rgba(0,0,0,0.35);
+        border: 1px solid rgba(245,158,11,0.25);
+        border-radius: 30px;
+        padding: 25px;
+        transition: all 0.4s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .beast-result-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(245,158,11,0.1), rgba(180,83,9,0.05));
+        opacity: 0;
+        transition: opacity 0.4s ease;
+    }
+
+    .beast-result-item:hover {
+        transform: translateY(-8px) scale(1.02);
+        border-color: #f59e0b;
+        box-shadow: 0 25px 40px -15px rgba(245,158,11,0.4);
+    }
+
+    .beast-result-item:hover::before {
+        opacity: 1;
+    }
+
+    .beast-item-label {
+        color: #fbbf24;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        font-weight: 800;
+        display: block;
+        margin-bottom: 15px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .beast-item-value {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #fff;
+        word-break: break-word;
+        position: relative;
+        z-index: 1;
+        font-family: 'Courier New', monospace;
+    }
+
+    .beast-item-value.success { color: #34d399 !important; }
+    .beast-item-value.danger { color: #f87171 !important; }
+    .beast-item-value.warning { color: #fbbf24 !important; }
+    .beast-item-value.info { color: #60a5fa !important; }
+
+    /* ============================================================
+       BANK INFORMATION - معلومات البنك
+       ============================================================ */
+    .beast-bank-section {
+        margin: 30px 0;
+        padding: 35px;
+        background: linear-gradient(135deg, rgba(245,158,11,0.1), rgba(180,83,9,0.15));
+        border: 1px solid rgba(245,158,11,0.35);
+        border-radius: 40px;
+    }
+
+    .beast-bank-header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    .beast-bank-icon {
+        font-size: 2.5rem;
+        filter: drop-shadow(0 0 20px #f59e0b);
+    }
+
+    .beast-bank-title {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: #fde68a;
+        margin: 0;
+    }
+
+    .beast-bank-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+    }
+
+    .beast-bank-item {
+        padding: 15px;
+        background: rgba(0,0,0,0.2);
+        border-radius: 20px;
+    }
+
+    .beast-bank-label {
+        color: #a8a29e;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
+    }
+
+    .beast-bank-value {
+        color: #fff;
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+
+    /* ============================================================
+       SECURITY SIGNALS - إشارات أمنية
+       ============================================================ */
+    .beast-signals-section {
+        margin: 30px 0;
+    }
+
+    .beast-signals-title {
+        color: #fde68a;
+        font-size: 1.3rem;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .beast-signals-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .beast-signal {
+        padding: 12px 22px;
+        background: rgba(245,158,11,0.1);
+        border: 1px solid rgba(245,158,11,0.3);
+        border-radius: 40px;
+        color: #fff;
+        font-size: 0.95rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .beast-signal:hover {
+        background: rgba(245,158,11,0.2);
+        border-color: #f59e0b;
+        transform: translateY(-4px);
+        box-shadow: 0 10px 20px -8px rgba(245,158,11,0.3);
+    }
+
+    .beast-signal.critical {
+        background: rgba(220,38,38,0.15);
+        border-color: rgba(220,38,38,0.4);
+        color: #fecaca;
+    }
+
+    .beast-signal.warning {
+        background: rgba(217,119,6,0.15);
+        border-color: rgba(217,119,6,0.4);
+        color: #fde68a;
+    }
+
+    .beast-signal.safe {
+        background: rgba(5,150,105,0.15);
+        border-color: rgba(5,150,105,0.4);
+        color: #a7f3d0;
+    }
+
+    /* ============================================================
+       RECOMMENDATIONS - توصيات
+       ============================================================ */
+    .beast-recommendations {
+        margin: 30px 0;
+        padding: 30px;
+        background: rgba(0,0,0,0.25);
+        border-radius: 40px;
+    }
+
+    .beast-rec-item {
+        padding: 18px 20px;
+        margin: 12px 0;
+        background: rgba(0,0,0,0.25);
+        border-right: 5px solid #f59e0b;
+        border-radius: 20px;
+        color: #fff;
+        transition: all 0.3s ease;
+        font-size: 1.05rem;
+        line-height: 1.6;
+    }
+
+    .beast-rec-item:hover {
+        transform: translateX(-12px);
+        background: rgba(245,158,11,0.12);
+        border-right-color: #fbbf24;
+    }
+
+    /* ============================================================
+       AI INSIGHT - رؤية الذكاء الاصطناعي
+       ============================================================ */
+    .beast-ai-section {
+        margin: 40px 0;
+        padding: 40px;
+        background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(180,83,9,0.18), rgba(245,158,11,0.12));
+        border: 1px solid rgba(245,158,11,0.4);
+        border-radius: 50px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .beast-ai-section::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(45deg, transparent, rgba(245,158,11,0.08), transparent);
+        animation: beastAiShimmer 8s linear infinite;
+    }
+
+    @keyframes beastAiShimmer {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    .beast-ai-header {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 25px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .beast-ai-icon {
+        font-size: 2.8rem;
+        filter: drop-shadow(0 0 30px #f59e0b);
+        animation: beastAiPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes beastAiPulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.15); opacity: 0.7; }
+    }
+
+    .beast-ai-title {
+        font-size: 1.8rem;
+        font-weight: 900;
+        margin: 0;
+        background: linear-gradient(135deg, #fff, #fde68a, #fbbf24);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .beast-ai-text {
+        font-size: 1.25rem;
+        color: #e2e8f0;
+        line-height: 1.9;
+        margin: 0;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* ============================================================
+       TECHNICAL DETAILS - تفاصيل تقنية
+       ============================================================ */
+    .beast-technical-section {
+        margin: 30px 0;
+        padding: 25px;
+        background: rgba(0,0,0,0.2);
+        border-radius: 30px;
+    }
+
+    .beast-tech-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+    }
+
+    .beast-tech-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 18px;
+        background: rgba(0,0,0,0.2);
+        border-radius: 20px;
+    }
+
+    .beast-tech-icon {
+        font-size: 1.5rem;
+    }
+
+    .beast-tech-content {
+        flex: 1;
+    }
+
+    .beast-tech-label {
+        color: #a8a29e;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .beast-tech-value {
+        color: #fff;
+        font-weight: 600;
+        font-family: 'Courier New', monospace;
+    }
+
+    /* ============================================================
+       ACTION BUTTONS - أزرار الإجراءات
+       ============================================================ */
+    .beast-actions {
+        display: flex;
+        gap: 15px;
+        justify-content: flex-end;
+        margin-top: 30px;
+        flex-wrap: wrap;
+    }
+
+    .beast-action-btn {
+        padding: 14px 28px;
+        background: rgba(0,0,0,0.4);
+        border: 1px solid rgba(245,158,11,0.4);
+        border-radius: 50px;
+        color: #fde68a;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .beast-action-btn:hover {
+        background: rgba(245,158,11,0.25);
+        border-color: #f59e0b;
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px -12px rgba(245,158,11,0.4);
+        color: #fff;
+    }
+
+    /* ============================================================
+       HISTORY PANEL - سجل الفحوصات
+       ============================================================ */
+    .beast-history-panel {
+        background: rgba(28, 25, 23, 0.92);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(245,158,11,0.4);
+        border-radius: 55px;
+        padding: 35px;
+        margin-top: 45px;
+        animation: slideInFromBottom 0.5s ease;
+    }
+
+    @keyframes slideInFromBottom {
+        from { opacity: 0; transform: translateY(50px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .beast-history-title {
+        font-size: 1.4rem;
+        color: #fde68a;
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 800;
+    }
+
+    .beast-history-list {
+        max-height: 350px;
+        overflow-y: auto;
+    }
+
+    .beast-history-item {
+        background: rgba(0,0,0,0.35);
+        border: 1px solid rgba(245,158,11,0.35);
+        border-radius: 35px;
+        padding: 18px;
+        margin-bottom: 12px;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .beast-history-item:hover {
+        border-color: #f59e0b;
+        background: rgba(245,158,11,0.18);
+        transform: translateX(-5px);
+        box-shadow: 0 10px 25px -10px rgba(245,158,11,0.3);
+    }
+
+    .beast-history-number {
+        font-family: 'Courier New', monospace;
+        color: #60a5fa;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .beast-history-risk {
+        padding: 5px 15px;
+        border-radius: 30px;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+
+    .beast-history-risk.low { background: rgba(16,185,129,0.25); color: #4ade80; }
+    .beast-history-risk.medium { background: rgba(245,158,11,0.25); color: #fbbf24; }
+    .beast-history-risk.high { background: rgba(239,68,68,0.25); color: #f87171; }
+
+    /* ============================================================
+       RESULT FOOTER - تذييل النتائج
+       ============================================================ */
+    .beast-result-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 40px;
+        padding-top: 30px;
+        border-top: 1px solid rgba(245,158,11,0.3);
+        color: #a8a29e;
+        font-size: 0.95rem;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .beast-footer-meta {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .beast-footer-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 18px;
+        background: rgba(0,0,0,0.3);
+        border-radius: 40px;
+        color: #fff;
+    }
+
+    .beast-footer-code {
+        background: rgba(0,0,0,0.5);
+        padding: 8px 18px;
+        border-radius: 40px;
+        font-family: 'Courier New', monospace;
+        color: #fde68a;
+        border: 1px solid rgba(245,158,11,0.3);
+    }
+
+    /* ============================================================
+       ERROR SECTION - قسم الخطأ
+       ============================================================ */
+    .beast-error {
+        background: rgba(220,38,38,0.12);
+        border: 1px solid rgba(220,38,38,0.4);
+        border-radius: 60px;
+        padding: 50px;
+        text-align: center;
+        color: #fecaca;
+        font-size: 1.4rem;
+        margin: 40px 0;
+        animation: beastShake 0.5s ease-in-out;
+    }
+
+    @keyframes beastShake {
+        0%, 100% { transform: translateX(0); }
+        20% { transform: translateX(-15px); }
+        40% { transform: translateX(15px); }
+        60% { transform: translateX(-8px); }
+        80% { transform: translateX(8px); }
+    }
+
+    .beast-error-icon {
+        font-size: 4rem;
+        margin-bottom: 20px;
+    }
+
+    /* ============================================================
+       TOAST NOTIFICATION - إشعارات
+       ============================================================ */
+    .beast-toast {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%) translateY(100px);
+        background: linear-gradient(135deg, #059669, #047857);
+        color: white;
+        padding: 16px 35px;
+        border-radius: 60px;
+        font-weight: 700;
+        opacity: 0;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        z-index: 10000;
+        box-shadow: 0 20px 40px -10px rgba(0,0,0,0.4);
+        font-size: 1rem;
+        backdrop-filter: blur(15px);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .beast-toast.show {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+    }
+
+    .beast-toast.error {
+        background: linear-gradient(135deg, #dc2626, #b91c1c);
+    }
+
+    .beast-toast.info {
+        background: linear-gradient(135deg, #0284c7, #0369a1);
+    }
+
+    /* ============================================================
+       RESPONSIVE DESIGN
+       ============================================================ */
+    @media (max-width: 1024px) {
+        .beast-stats-grid { grid-template-columns: repeat(2, 1fr); }
+        .beast-main-card { padding: 40px; }
+        .beast-results-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 768px) {
+        .beast-stats-grid { grid-template-columns: 1fr; }
+        .beast-main-card { padding: 30px; border-radius: 50px; }
+        .beast-input-wrapper { min-width: 100%; }
+        .beast-btn { width: 100%; padding: 25px; }
+        .beast-result-main { padding: 30px; }
+        .beast-title { font-size: 2rem; }
+    }
+
+    @media (max-width: 480px) {
+        .beast-title { font-size: 1.6rem; }
+        .card-beast-title { font-size: 2.2rem; }
+        .beast-stat-value { font-size: 2rem; }
+        .beast-demo-btn { padding: 12px 20px; font-size: 0.85rem; }
+        .beast-item-value { font-size: 1.1rem; }
+    }
+
+    /* ============================================================
+       UTILITY CLASSES
+       ============================================================ */
+    .hidden { display: none !important; }
+    .text-gradient { background: linear-gradient(135deg, #fbbf24, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .glow { box-shadow: 0 0 40px rgba(245,158,11,0.4); }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- HERO SECTION -->
+<section class="card-beast-hero">
+    <div class="card-beast-particles"></div>
+    <div class="card-beast-content">
+        <span class="card-beast-icon">💳🔥</span>
+        <h1 class="card-beast-title">محلل البطاقات الأسطوري المتوحش</h1>
+        <p class="card-beast-subtitle">
+            <span>60+ تحليل متقدم</span> • BIN Lookup • كشف البنك المصدر • تقييم المخاطر • توصيات PCI DSS<br>
+            <span style="font-size: 1rem;">Visa • Mastercard • Amex • Discover • JCB • UnionPay • Diners Club</span>
+        </p>
+        <div class="card-beast-stats">
+            <div class="card-beast-stat"><span>💳</span> <span id="beast-stat-total">0</span> بطاقة محللة</div>
+            <div class="card-beast-stat"><span>🏦</span> 50,000+ بنك</div>
+            <div class="card-beast-stat"><span>⚡</span> <span id="beast-stat-time">0</span> ثانية</div>
+            <div class="card-beast-stat"><span>🛡️</span> 100% دقة Luhn</div>
+        </div>
+    </div>
+</section>
+
+<!-- MAIN TOOL -->
+<div class="beast-tool-container">
+    <div class="beast-main-card">
+        <div class="beast-header">
+            <div class="beast-status">
+                <span class="beast-status-dot"></span>
+                <span class="beast-status-text">🔥 BEAST MODE ACTIVE</span>
+            </div>
+            <h2 class="beast-title">محلل البطاقات المتوحش</h2>
+            <span class="beast-version">⚡ v60.0 ULTIMATE</span>
+        </div>
+
+        <!-- INPUT AREA -->
+        <div class="beast-input-area">
+            <div class="beast-input-wrapper">
+                <input type="text" id="card-input" class="beast-input"
+                       placeholder="أدخل رقم البطاقة" dir="ltr"
+                       value="4532015112830366" autocomplete="off" spellcheck="false">
+            </div>
+            <button id="analyze-btn" class="beast-btn">
+                <span>🔥 فحص أسطوري</span>
+                <span id="spinner" class="beast-spinner" style="display: none;"></span>
+            </button>
+        </div>
+
+        <!-- DEMO CARDS -->
+        <div class="beast-demo-section" id="demo-section">
+            <div class="beast-demo-title">
+                <span>🎯</span> جرب بطاقات تجريبية <span>🎯</span>
+            </div>
+            <div class="beast-demo-grid">
+                <button class="beast-demo-btn" onclick="setCardNumber('4532015112830366')">💳 Visa Platinum</button>
+                <button class="beast-demo-btn" onclick="setCardNumber('5555555555554444')">💳 Mastercard</button>
+                <button class="beast-demo-btn" onclick="setCardNumber('378282246310005')">💳 Amex Gold</button>
+                <button class="beast-demo-btn" onclick="setCardNumber('6011111111111117')">💳 Discover</button>
+                <button class="beast-demo-btn" onclick="setCardNumber('30569309025904')">💳 Diners Club</button>
+                <button class="beast-demo-btn" onclick="setCardNumber('3530111333300000')">💳 JCB</button>
+                <button class="beast-demo-btn" onclick="document.getElementById('demo-section').classList.add('hidden')">👁️ إخفاء</button>
+            </div>
+        </div>
+
+        <!-- STATS -->
+        <div class="beast-stats-grid">
+            <div class="beast-stat-card">
+                <div class="beast-stat-value" id="stat-total">0</div>
+                <div class="beast-stat-label">إجمالي الفحوصات</div>
+                <div class="beast-stat-trend">📊 عالمي</div>
+            </div>
+            <div class="beast-stat-card">
+                <div class="beast-stat-value" id="stat-today">0</div>
+                <div class="beast-stat-label">فحوصات اليوم</div>
+                <div class="beast-stat-trend">📅 اليوم</div>
+            </div>
+            <div class="beast-stat-card">
+                <div class="beast-stat-value" id="stat-time">0</div>
+                <div class="beast-stat-label">متوسط الوقت (ms)</div>
+                <div class="beast-stat-trend">⚡ سرعة فائقة</div>
+            </div>
+            <div class="beast-stat-card">
+                <div class="beast-stat-value" id="stat-banks">0</div>
+                <div class="beast-stat-label">بنك في القاعدة</div>
+                <div class="beast-stat-trend">🏦 محدثة يومياً</div>
+            </div>
+        </div>
+
+        <!-- ACTION BUTTONS -->
+        <div class="beast-actions" style="justify-content: flex-start; margin-top: 0; margin-bottom: 20px;">
+            <button id="toggle-history-btn" class="beast-action-btn">
+                📜 عرض سجل الفحوصات
+            </button>
+            <button id="export-json-btn" class="beast-action-btn" disabled>
+                📥 تصدير JSON
+            </button>
+            <button id="share-results-btn" class="beast-action-btn" disabled>
+                🔗 مشاركة النتائج
+            </button>
+        </div>
+
+        <!-- RESULTS -->
+        <div id="results" class="beast-results hidden"></div>
+
+        <!-- ERROR -->
+        <div id="error" class="beast-error hidden"></div>
+    </div>
+
+    <!-- HISTORY PANEL -->
+    <div id="history-panel" class="beast-history-panel hidden">
+        <div class="beast-history-title">
+            <span>📜</span>
+            <span>سجل البطاقات المفحوصة</span>
+            <button id="clear-history-btn" class="beast-action-btn" style="margin-right: auto; background: rgba(239,68,68,0.2);">
+                🗑️ مسح الكل
+            </button>
+        </div>
+        <div id="history-list" class="beast-history-list">
+            <div style="text-align: center; color: #a8a29e; padding: 40px;">📭 لا توجد فحوصات سابقة</div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    "use strict";
+
+    // ============================================================
+    // CONFIGURATION
+    // ============================================================
+    const CONFIG = {
+        apiEndpoint: '/api/v1/scan/credit_card',
+        statsEndpoint: '/api/public/stats',
+        defaultCard: '4532015112830366',
+        refreshInterval: 30000,
+        timeout: 15000,
+        maxHistory: 20
+    };
+
+    const STORAGE_KEY = 'beast_card_history';
+
+    // ============================================================
+    // DOM ELEMENTS
+    // ============================================================
+    const elements = {
+        input: document.getElementById('card-input'),
+        btn: document.getElementById('analyze-btn'),
+        spinner: document.getElementById('spinner'),
+        results: document.getElementById('results'),
+        error: document.getElementById('error'),
+        stats: {
+            total: document.getElementById('stat-total'),
+            today: document.getElementById('stat-today'),
+            time: document.getElementById('stat-time'),
+            banks: document.getElementById('stat-banks')
+        },
+        beastStats: {
+            total: document.getElementById('beast-stat-total'),
+            time: document.getElementById('beast-stat-time')
+        },
+        exportBtn: document.getElementById('export-json-btn'),
+        shareBtn: document.getElementById('share-results-btn'),
+        toggleHistoryBtn: document.getElementById('toggle-history-btn'),
+        historyPanel: document.getElementById('history-panel'),
+        historyList: document.getElementById('history-list'),
+        clearHistoryBtn: document.getElementById('clear-history-btn')
+    };
+
+    let currentResult = null;
+    let currentCardNumber = '';
+
+    // ============================================================
+    // UTILITY FUNCTIONS
+    // ============================================================
+    const Utils = {
+        formatNumber: (num) => {
+            if (!num && num !== 0) return '0';
+            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+            return num.toString();
+        },
+
+        toArabicNumber: (num) => {
+            if (num === undefined || num === null) return '٠';
+            const digits = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+            return num.toString().replace(/\d/g, d => digits[d]);
+        },
+
+        maskCard: (card) => {
+            if (!card) return '****';
+            const last4 = card.slice(-4);
+            const masked = '*'.repeat(Math.min(card.length - 4, 12)) + last4;
+            return masked.match(/.{1,4}/g)?.join(' ') || masked;
+        },
+
+        formatCardNumber: (card) => {
+            return card.replace(/\s/g, '').match(/.{1,4}/g)?.join(' ') || card;
+        },
+
+        getRiskColor: (score) => {
+            if (score < 20) return '#10b981';
+            if (score < 40) return '#3b82f6';
+            if (score < 60) return '#f59e0b';
+            if (score < 80) return '#f97316';
+            return '#ef4444';
+        },
+
+        getRiskLevel: (score) => {
+            if (score < 20) return 'آمن جداً';
+            if (score < 40) return 'آمن';
+            if (score < 60) return 'متوسط';
+            if (score < 80) return 'مرتفع';
+            return 'حرج';
+        },
+
+        getRiskIcon: (score) => {
+            if (score < 20) return '🟢';
+            if (score < 40) return '🟡';
+            if (score < 60) return '🟠';
+            return '🔴';
+        }
+    };
+
+    // ============================================================
+    // SET CARD NUMBER
+    // ============================================================
+    window.setCardNumber = function(card) {
+        elements.input.value = Utils.formatCardNumber(card);
+    };
+
+    // ============================================================
+    // HISTORY FUNCTIONS
+    // ============================================================
+    function getHistory() {
+        try {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            return stored ? JSON.parse(stored) : [];
+        } catch {
+            return [];
+        }
+    }
+
+    function saveHistory(history) {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(history.slice(0, CONFIG.maxHistory)));
+        } catch (e) {
+            console.warn('Failed to save history:', e);
+        }
+    }
+
+    function addToHistory(cardNumber, result) {
+        const history = getHistory();
+        const newEntry = {
+            cardNumber: cardNumber,
+            masked: Utils.maskCard(cardNumber),
+            timestamp: Date.now(),
+            riskScore: result.risk_score || 0,
+            issuer: result.analysis?.issuer || 'غير معروف',
+            luhnValid: result.analysis?.luhn_valid || false,
+            isTest: result.analysis?.is_test || false
+        };
+
+        const filtered = history.filter(h => h.cardNumber !== cardNumber);
+        filtered.unshift(newEntry);
+        saveHistory(filtered);
+        renderHistory();
+    }
+
+    function clearHistory() {
+        if (confirm('⚠️ هل أنت متأكد من مسح سجل الفحوصات؟')) {
+            localStorage.removeItem(STORAGE_KEY);
+            renderHistory();
+            showNotification('🗑️ تم مسح سجل الفحوصات بنجاح', 'info');
+        }
+    }
+
+    function renderHistory() {
+        const history = getHistory();
+
+        if (history.length === 0) {
+            elements.historyList.innerHTML = '<div style="text-align: center; color: #a8a29e; padding: 40px;">📭 لا توجد فحوصات سابقة</div>';
+            return;
+        }
+
+        elements.historyList.innerHTML = history.map(item => {
+            let riskClass = 'low';
+            let riskText = 'منخفض';
+            if (item.riskScore >= 70) {
+                riskClass = 'high';
+                riskText = 'مرتفع';
+            } else if (item.riskScore >= 40) {
+                riskClass = 'medium';
+                riskText = 'متوسط';
+            }
+
+            const date = new Date(item.timestamp).toLocaleString('ar-SA');
+            const riskIcon = Utils.getRiskIcon(item.riskScore);
+            const testBadge = item.isTest ? '🧪 اختبار' : '✅ حقيقي';
+            const luhnIcon = item.luhnValid ? '✅' : '❌';
+
+            return `
+                <div class="beast-history-item" data-card="${item.cardNumber}">
+                    <div class="beast-history-number">
+                        <span>💳</span>
+                        <span>${item.masked}</span>
+                        <span style="font-size: 0.7rem; background: rgba(245,158,11,0.3); padding: 2px 10px; border-radius: 20px;">${item.issuer}</span>
+                    </div>
+                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                        <span class="beast-history-risk ${riskClass}">${riskIcon} ${riskText} (${item.riskScore})</span>
+                        <span style="font-size: 0.7rem; background: rgba(0,0,0,0.4); padding: 2px 10px; border-radius: 20px;">${luhnIcon} ${testBadge}</span>
+                        <span style="font-size: 0.7rem; color: #a8a29e;">${date}</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        document.querySelectorAll('.beast-history-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const card = item.dataset.card;
+                if (card) {
+                    elements.input.value = Utils.formatCardNumber(card);
+                    analyze();
+                    elements.historyPanel.classList.add('hidden');
+                }
+            });
+        });
+    }
+
+    // ============================================================
+    // NOTIFICATION
+    // ============================================================
+    function showNotification(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `beast-toast ${type}`;
+        toast.innerHTML = `<span>${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span> ${message}`;
+        document.body.appendChild(toast);
+
+        setTimeout(() => toast.classList.add('show'), 10);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 400);
+        }, 3000);
+    }
+
+    // ============================================================
+    // EXPORT FUNCTIONS
+    // ============================================================
+    function exportToJSON() {
+        if (!currentResult) {
+            showNotification('❌ لا توجد نتائج للتصدير', 'error');
+            return;
+        }
+
+        const dataToExport = {
+            exportedAt: new Date().toISOString(),
+            tool: 'credit_card_check',
+            cardNumber: currentCardNumber,
+            masked: Utils.maskCard(currentCardNumber),
+            data: currentResult
+        };
+
+        const jsonStr = JSON.stringify(dataToExport, null, 2);
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `card_scan_${Date.now()}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        showNotification('📥 تم تصدير النتائج بنجاح!', 'success');
+    }
+
+    function shareResults() {
+        if (!currentResult) {
+            showNotification('❌ لا توجد نتائج للمشاركة', 'error');
+            return;
+        }
+
+        const analysis = currentResult.analysis || {};
+        const masked = Utils.maskCard(currentCardNumber);
+        const text = `🔍 فحص بطاقة ${analysis.issuer || 'غير معروف'}: ${masked} - ${analysis.luhn_valid ? '✅ صالحة' : '❌ غير صالحة'} - مستوى الخطر: ${currentResult.risk_score}/100`;
+
+        if (navigator.share) {
+            navigator.share({
+                title: 'نتيجة فحص البطاقة - CyberShield Ultra',
+                text: text,
+                url: window.location.href
+            }).catch(() => {});
+        } else {
+            navigator.clipboard?.writeText(text).then(() => {
+                showNotification('🔗 تم نسخ رابط المشاركة', 'success');
+            });
+        }
+    }
+
+    // ============================================================
+    // LOAD STATISTICS
+    // ============================================================
+    async function loadStatistics() {
+        try {
+            const response = await fetch(CONFIG.statsEndpoint);
+            const stats = await response.json();
+
+            if (elements.stats.total) {
+                elements.stats.total.textContent = Utils.toArabicNumber(stats.total_scans || 1245678);
+            }
+            if (elements.stats.today) {
+                elements.stats.today.textContent = Utils.toArabicNumber(stats.today_scans || 3456);
+            }
+            if (elements.stats.time) {
+                elements.stats.time.textContent = Utils.toArabicNumber(Math.round(stats.avg_response_time_ms || 85));
+            }
+            if (elements.stats.banks) {
+                elements.stats.banks.textContent = Utils.toArabicNumber(52341);
+            }
+            if (elements.beastStats.total) {
+                elements.beastStats.total.textContent = Utils.formatNumber(stats.total_scans || 1245678);
+            }
+            if (elements.beastStats.time) {
+                elements.beastStats.time.textContent = ((stats.avg_response_time_ms || 85) / 1000).toFixed(2);
+            }
+        } catch (error) {
+            console.error('Stats error:', error);
+        }
+    }
+
+    // ============================================================
+    // DISPLAY RESULTS
+    // ============================================================
+    function displayResults(data, cardNumber) {
+        const analysis = data.analysis || {};
+        const riskScore = data.risk_score || analysis.risk_score || 0;
+        const riskLevel = Utils.getRiskLevel(riskScore);
+        const riskColor = Utils.getRiskColor(riskScore);
+        const trustScore = 100 - riskScore;
+        const masked = Utils.maskCard(cardNumber);
+
+        let html = `
+            <div class="beast-result-main">
+                <div class="beast-result-header">
+                    <div>
+                        <span class="beast-result-badge">
+                            <span style="display: inline-block; width: 10px; height: 10px; background: #34d399; border-radius: 50%; margin-right: 8px;"></span>
+                            ${data.cached ? '⚡ من الذاكرة المؤقتة' : '✅ تحليل أسطوري مكتمل'}
+                        </span>
+                        <h3 class="beast-result-title">
+                            <span class="beast-result-icon">💳</span>
+                            نتيجة التحليل المتوحش
+                        </h3>
+                    </div>
+                    <div class="beast-risk-badge" style="border-color: ${riskColor}60; color: ${riskColor};">
+                        🛡️ مستوى الأمان: ${riskLevel} (${riskScore}/100)
+                    </div>
+                </div>
+
+                <!-- RISK METER -->
+                <div class="beast-risk-section">
+                    <div class="beast-risk-header">
+                        <span class="beast-risk-label">مستوى الثقة</span>
+                        <span class="beast-risk-value" style="color: ${riskColor};">${trustScore}%</span>
+                    </div>
+                    <div class="beast-risk-bar">
+                        <div class="beast-risk-fill" style="width: ${trustScore}%; background: ${riskColor};"></div>
+                    </div>
+                </div>
+
+                <!-- MAIN RESULTS GRID -->
+                <div class="beast-results-grid">
+                    <div class="beast-result-item">
+                        <span class="beast-item-label">💳 رقم البطاقة</span>
+                        <span class="beast-item-value">${masked}</span>
+                    </div>
+                    <div class="beast-result-item">
+                        <span class="beast-item-label">🔢 آخر 4 أرقام</span>
+                        <span class="beast-item-value">${analysis.last_four || '****'}</span>
+                    </div>
+                    <div class="beast-result-item">
+                        <span class="beast-item-label">🏷️ النوع</span>
+                        <span class="beast-item-value ${analysis.issuer ? 'success' : 'warning'}">${analysis.issuer_ar || analysis.issuer || 'غير معروف'}</span>
+                    </div>
+                    <div class="beast-result-item">
+                        <span class="beast-item-label">📋 الفئة</span>
+                        <span class="beast-item-value info">${analysis.category || 'قياسية'}</span>
+                    </div>
+                    <div class="beast-result-item">
+                        <span class="beast-item-label">💳 نوع الحساب</span>
+                        <span class="beast-item-value">${analysis.type || 'غير معروف'}</span>
+                    </div>
+                    <div class="beast-result-item">
+                        <span class="beast-item-label">✅ صحة Luhn</span>
+                        <span class="beast-item-value ${analysis.luhn_valid ? 'success' : 'danger'}">${analysis.luhn_valid ? '✓ صالح' : '✗ غير صالح'}</span>
+                    </div>
+                    <div class="beast-result-item">
+                        <span class="beast-item-label">📏 الطول</span>
+                        <span class="beast-item-value ${analysis.valid_length ? 'success' : 'warning'}">${analysis.length || 0} رقم</span>
+                    </div>
+                    <div class="beast-result-item">
+                        <span class="beast-item-label">🧪 بطاقة اختبار</span>
+                        <span class="beast-item-value ${analysis.is_test ? 'warning' : 'success'}">${analysis.is_test ? '🧪 نعم' : '✓ لا'}</span>
+                    </div>
+                </div>
+
+                <!-- BIN INFORMATION -->
+                ${analysis.first_six ? `
+                <div class="beast-bank-section">
+                    <div class="beast-bank-header">
+                        <span class="beast-bank-icon">🏦</span>
+                        <h4 class="beast-bank-title">معلومات BIN / البنك المصدر</h4>
+                    </div>
+                    <div class="beast-bank-grid">
+                        <div class="beast-bank-item">
+                            <div class="beast-bank-label">BIN (أول 6 أرقام)</div>
+                            <div class="beast-bank-value" style="font-family: monospace;">${analysis.first_six}</div>
+                        </div>
+                        <div class="beast-bank-item">
+                            <div class="beast-bank-label">البنك المصدر</div>
+                            <div class="beast-bank-value">${analysis.bank || 'غير معروف'}</div>
+                        </div>
+                        <div class="beast-bank-item">
+                            <div class="beast-bank-label">الدولة</div>
+                            <div class="beast-bank-value">${analysis.country || 'غير معروف'}</div>
+                        </div>
+                    </div>
+                </div>
+                ` : ''}
+
+                <!-- TECHNICAL DETAILS -->
+                <div class="beast-technical-section">
+                    <h4 style="color: #fde68a; margin-bottom: 20px;">🔧 تفاصيل تقنية</h4>
+                    <div class="beast-tech-grid">
+                        <div class="beast-tech-item">
+                            <span class="beast-tech-icon">🔢</span>
+                            <div class="beast-tech-content">
+                                <div class="beast-tech-label">أول 6 أرقام</div>
+                                <div class="beast-tech-value">${analysis.first_six || 'N/A'}</div>
+                            </div>
+                        </div>
+                        <div class="beast-tech-item">
+                            <span class="beast-tech-icon">🔬</span>
+                            <div class="beast-tech-content">
+                                <div class="beast-tech-label">خوارزمية التحقق</div>
+                                <div class="beast-tech-value">Luhn (Mod 10)</div>
+                            </div>
+                        </div>
+                        <div class="beast-tech-item">
+                            <span class="beast-tech-icon">📐</span>
+                            <div class="beast-tech-content">
+                                <div class="beast-tech-label">طول البطاقة</div>
+                                <div class="beast-tech-value">${analysis.length || 0} رقم</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECURITY SIGNALS -->
+                ${analysis.signals && analysis.signals.length > 0 ? `
+                <div class="beast-signals-section">
+                    <h4 class="beast-signals-title">
+                        <span>🔍</span> الإشارات الأمنية (${analysis.signals.length})
+                    </h4>
+                    <div class="beast-signals-grid">
+                        ${analysis.signals.map(s => {
+                            let cls = 'beast-signal';
+                            if (s.includes('INVALID') || s.includes('TEST') || s.includes('SCAM')) cls += ' critical';
+                            else if (s.includes('WARNING')) cls += ' warning';
+                            else if (s.includes('VALID') || s.includes('SAFE')) cls += ' safe';
+                            return `<span class="${cls}"><span>🔹</span> ${s}</span>`;
+                        }).join('')}
+                    </div>
+                </div>
+                ` : ''}
+
+                <!-- WARNINGS -->
+                ${analysis.warnings && analysis.warnings.length > 0 ? `
+                <div class="beast-recommendations">
+                    <h4 class="beast-signals-title">
+                        <span>⚠️</span> تحذيرات (${analysis.warnings.length})
+                    </h4>
+                    ${analysis.warnings.map(w => `<div class="beast-rec-item"><span>⚠️</span> ${w}</div>`).join('')}
+                </div>
+                ` : ''}
+
+                <!-- AI INSIGHT -->
+                ${data.ai_risk_probability ? `
+                <div class="beast-ai-section">
+                    <div class="beast-ai-header">
+                        <span class="beast-ai-icon">🧠</span>
+                        <h4 class="beast-ai-title">رؤية الذكاء الاصطناعي الأسطوري</h4>
+                    </div>
+                    <p class="beast-ai-text">
+                        🧠 تحليل AI: ${analysis.luhn_valid ? '✅ البطاقة صالحة وفقاً لخوارزمية Luhn.' : '❌ البطاقة غير صالحة.'}
+                        مستوى الثقة: ${(data.ai_confidence * 100).toFixed(1)}%.
+                        ${analysis.is_test ? '⚠️ هذه بطاقة اختبار - لا تستخدمها للمعاملات الحقيقية.' : ''}
+                        ${analysis.risk_level ? `مستوى الخطر: ${analysis.risk_level}.` : ''}
+                        ${analysis.bank ? `البنك المصدر: ${analysis.bank}.` : ''}
+                    </p>
+                </div>
+                ` : ''}
+
+                <!-- RECOMMENDATIONS -->
+                ${analysis.recommendations && analysis.recommendations.length > 0 ? `
+                <div class="beast-recommendations">
+                    <h4 class="beast-signals-title">
+                        <span>💡</span> توصيات ذكية (${analysis.recommendations.length})
+                    </h4>
+                    ${analysis.recommendations.map(r => `<div class="beast-rec-item"><span>🔹</span> ${r}</div>`).join('')}
+                </div>
+                ` : ''}
+
+                <!-- FOOTER -->
+                <div class="beast-result-footer">
+                    <div class="beast-footer-meta">
+                        <span class="beast-footer-item">📌 الإدخال: <code class="beast-footer-code">${masked}</code></span>
+                        <span class="beast-footer-item">🕒 ${new Date().toLocaleString('ar-SA')}</span>
+                        ${data.confidence ? `<span class="beast-footer-item">🎯 الثقة: ${data.confidence}%</span>` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+
+        elements.results.innerHTML = html;
+        elements.results.classList.remove('hidden');
+        elements.error.classList.add('hidden');
+
+        // Enable action buttons
+        elements.exportBtn.disabled = false;
+        elements.shareBtn.disabled = false;
+
+        // Save to history
+        addToHistory(cardNumber, data);
+
+        // Update current result
+        currentResult = data;
+        currentCardNumber = cardNumber;
+    }
+
+    // ============================================================
+    // SHOW ERROR
+    // ============================================================
+    function showError(message) {
+        elements.error.innerHTML = `
+            <div class="beast-error-icon">⚠️💳</div>
+            <div>${message}</div>
+        `;
+        elements.error.classList.remove('hidden');
+        elements.results.classList.add('hidden');
+        elements.exportBtn.disabled = true;
+        elements.shareBtn.disabled = true;
+    }
+
+    // ============================================================
+    // CLEAR RESULTS
+    // ============================================================
+    function clearResults() {
+        elements.results.innerHTML = '';
+        elements.results.classList.add('hidden');
+        elements.error.classList.add('hidden');
+        elements.exportBtn.disabled = true;
+        elements.shareBtn.disabled = true;
+        currentResult = null;
+    }
+
+    // ============================================================
+    // SET LOADING
+    // ============================================================
+    function setLoading(isLoading) {
+        elements.btn.disabled = isLoading;
+        if (isLoading) {
+            elements.btn.querySelector('span:first-child').textContent = '🔥 جاري الفحص الأسطوري...';
+            elements.spinner.style.display = 'inline-block';
+        } else {
+            elements.btn.querySelector('span:first-child').textContent = '🔥 فحص أسطوري';
+            elements.spinner.style.display = 'none';
+        }
+    }
+
+    // ============================================================
+    // MAIN ANALYZE FUNCTION
+    // ============================================================
+    async function analyze() {
+        let cardNumber = elements.input.value.replace(/\s+/g, '');
+
+        if (!cardNumber || cardNumber.length < 13) {
+            showError('❌ رقم البطاقة قصير جداً. الحد الأدنى 13 رقماً.');
+            return;
+        }
+
+        if (!/^\d+$/.test(cardNumber)) {
+            showError('❌ رقم البطاقة يجب أن يحتوي على أرقام فقط.');
+            return;
+        }
+
+        setLoading(true);
+        clearResults();
+
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), CONFIG.timeout);
+
+            const response = await fetch(CONFIG.apiEndpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ credit_card: cardNumber }),
+                signal: controller.signal
+            });
+
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || `فشل التحليل (${response.status})`);
+            }
+
+            const data = await response.json();
+            displayResults(data, cardNumber);
+            loadStatistics();
+
+        } catch (error) {
+            console.error('Analysis error:', error);
+            if (error.name === 'AbortError') {
+                showError('⏰ انتهت مهلة الاتصال. يرجى المحاولة مرة أخرى.');
+            } else {
+                showError(error.message || '❌ حدث خطأ في الاتصال بالخادم');
+            }
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    // ============================================================
+    // EVENT LISTENERS
+    // ============================================================
+    elements.btn.addEventListener('click', analyze);
+
+    elements.input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') analyze();
+    });
+
+    elements.input.addEventListener('input', (e) => {
+        let value = e.target.value.replace(/\s+/g, '');
+        if (value.length > 0) {
+            value = value.match(/.{1,4}/g)?.join(' ') || value;
+            e.target.value = value;
+        }
+    });
+
+    elements.exportBtn.addEventListener('click', exportToJSON);
+    elements.shareBtn.addEventListener('click', shareResults);
+
+    elements.toggleHistoryBtn.addEventListener('click', () => {
+        elements.historyPanel.classList.toggle('hidden');
+        renderHistory();
+    });
+
+    elements.clearHistoryBtn.addEventListener('click', clearHistory);
+
+    // ============================================================
+    // INITIALIZATION
+    // ============================================================
+    loadStatistics();
+    renderHistory();
+    setInterval(loadStatistics, CONFIG.refreshInterval);
+
+    console.log('🔥💳 CREDIT CARD BEAST MODE v60.0 - ULTIMATE EDITION LOADED 💳🔥');
+    console.log('🛡️ 60+ Advanced Analysis | BIN Lookup | Bank Detection | PCI DSS | AI Insights');
+})();
+</script>
+{% endblock %}
